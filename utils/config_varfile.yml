@@ -1,0 +1,17 @@
+
+TEMP: ['T.dat', 'Temperature (°C)']
+SAL: ['S.dat', 'Salinity (permill)']
+WINDU: ['U.dat', 'Water Velicity E-W (m/s)']
+WINDV: ['V.dat', 'Water Velocity N-S (m/s)']
+TKE: ['k.dat', 'TKE (J/kg)']
+EPS: ['eps.dat', 'EPS (W/kg)']
+ICE: ['ice.dat', 'Ice thickness (m)']
+  #Kz: 'nuh.dat'
+  #N2: 'nn.dat'
+  #B: 'B.dat'
+  #P: 'P.dat'
+  #LR_S: 'HA.dat'
+  #LR_W: 'HW.dat'
+  #SH: 'HK.dat'
+  #LH: 'HV.dat'
+  #RAD0: 'Rad0.dat'
