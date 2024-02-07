@@ -6,5 +6,5 @@ def write_meteo(path, filename, data, basedate):
     basedate = pd.to_datetime(basedate)
     data['time [d]'] = (data.index - basedate).total_seconds()/(60*60*24)
     data.reset_index(inplace=True)
-    wdata = data.iloc[:, [11,9,10,3,2,1,8,4]]
+    wdata = data.loc[:, ['time [d]', 'U [m/s]', 'V [m/s]', 'Temperature [degC]', 'Solar radiation [W/m^2]', 'Vapour pressure [mbar]', 'Cloud cover [-]']]
     wdata.to_csv(os.path.join(path, filename),index=False)

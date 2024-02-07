@@ -1,8 +1,8 @@
 
 lake: 'HALLWIL'
 path_models: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
-model_names: ['EAWAG_RESULTS'] #, 'TEST_2000-2005_NEWSAL']
-time_span: ['01-01-2000', '01-01-2005 00:00']
+model_names: ['EAWAG_RESULTS', 'TEST_2000-2018']
+time_span: ['01-01-2000', '01-01-2017 00:00']
 
 var: ['TEMP','SAL']
 

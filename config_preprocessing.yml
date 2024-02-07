@@ -1,0 +1,20 @@
+# MAIN CONFIG
+#
+lake: 'Lake Hallwil'
+date_interval: ['2000-01-01', '2019-01-01 00:00']
+
+# PATHS
+#
+meta_path: '/home/cesar/Documents/PhD/PY_projects/Simstrat-WorkflowModellingSwissLakes'
+meteo_path: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/INPUTS/HALLWIL/MET_LUZ_2000_2022'
+hydro_path: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/INPUTS/HALLWIL/15065_4410_2024-02-06_14-22-15/2416_Abfluss_Stundenmittel_1985-01-01_2023-12-31.csv'
+output_path: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/'
+
+# FILES
+#
+meta_file: 'Lakes.json'
+meteo_file: 'order_117973_data.txt'
+
+output_meteo: 'MeteoForcing_2000-2019.csv'
+output_hydro: ['Qin.csv, Qout.csv']
+
