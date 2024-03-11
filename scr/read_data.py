@@ -19,6 +19,7 @@ def read_model(cfg):
         for var in cfg['var']:
             varf = varfile[var][0]
             newfile = '_'.join([lakename, varf])
+            print(newfile)
             datafile = pd.read_csv(os.path.join(path, lakename, modelname, newfile))
             datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
             datafile = datafile.set_index('Datetime')
@@ -50,5 +51,8 @@ def read_config(filename):
         conf_file = yaml.safe_load(file)
     return conf_file
 
-def read_hydro(filename):
-    pass
+def read_hydro(path, filename, date_interval):
+    data = pd.read_csv(os.path.join(path, filename), sep=';', skiprows=9, usecols=[6,8], names=['Datetime', 'Q_in [m3/s]'])
+    data['Datetime'] = pd.to_datetime(data.Datetime)
+    data.set_index('Datetime', inplace=True)
+    return data[date_interval[0]:date_interval[1]]
