@@ -31,6 +31,10 @@ def ts_colormesh(modeldata, modelname, varname, cmap='viridis', vmax=None, vmin=
     cblabel = read_config('utils/config_varfile.yml')
     fig.colorbar(pc, ax=ax, label=cblabel[varname][1])
 
-def plot_timeserie(data):
+def plot_timeserie(data, var):
     fig, ax = plt.subplots()
-    ax.plot(data)
+    for modeldata in data:
+        ax.plot(data[modeldata].index, data[modeldata][var], label=modeldata)
+    ax.legend()
+    return ax
+

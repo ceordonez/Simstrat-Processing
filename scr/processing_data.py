@@ -8,9 +8,10 @@ import scr.functions as fn
 def processing_meteo(data, meta):
 
     # Calculates wind V and U
-    data['U [m/s]'] = -data['WindVel [m/s]']*np.cos(data['WindDir [degN]']*np.pi/180)
-    data['V [m/s]'] = -data['WindVel [m/s]']*np.sin(data['WindDir [degN]']*np.pi/180)
-
+    data.loc[data['WindVel [m/s]'].isnull(), 'WindVel [m/s]'] = data['WindVel [m/s]'].mean()
+    data.loc[data['WindDir [degN]'].isnull(), 'WindDir [degN]'] = data['WindDir [degN]'].mean()
+    data['U [m/s]'] = -data['WindVel [m/s]']*np.sin(data['WindDir [degN]']*np.pi/180)
+    data['V [m/s]'] = -data['WindVel [m/s]']*np.cos(data['WindDir [degN]']*np.pi/180)
     # Estimate cloud cover if there are no measurements
     data = fn.cloudcover(data, meta)
     return data

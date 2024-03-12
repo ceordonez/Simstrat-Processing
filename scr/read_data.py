@@ -19,7 +19,6 @@ def read_model(cfg):
         for var in cfg['var']:
             varf = varfile[var][0]
             newfile = '_'.join([lakename, varf])
-            print(newfile)
             datafile = pd.read_csv(os.path.join(path, lakename, modelname, newfile))
             datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
             datafile = datafile.set_index('Datetime')
@@ -56,3 +55,23 @@ def read_hydro(path, filename, date_interval):
     data['Datetime'] = pd.to_datetime(data.Datetime)
     data.set_index('Datetime', inplace=True)
     return data[date_interval[0]:date_interval[1]]
+
+def read_inputs_meteo(cfg):
+    path = cfg['path_models']
+    filename = cfg['input_file']
+    lakename = cfg['lake']
+    varfile = read_config('utils/config_varfile.yml')
+    idata = {}
+    for modelname in cfg['model_names']:
+        filecfg_sims = os.path.join(path, lakename, modelname, 'INPUTS', 'config_simstrat.par')
+        cfg_sims = read_config(filecfg_sims)
+        refyear = str(cfg_sims['Simulation']['Reference year'])
+        datamodel = {}
+        data = pd.read_csv(os.path.join(path, lakename, modelname, 'INPUTS', filename +'.csv'))
+        data['Datetime'] = pd.to_datetime(data['Time [d]'], origin=refyear, unit='D')
+        data.set_index('Datetime', inplace=True)
+        idata[modelname] = data
+
+
+    return idata
+
