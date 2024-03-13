@@ -16,7 +16,6 @@ def main():
     metalake = read_lakemeta(cfg['meta_path'], cfg['meta_file'], cfg['lake'])
     #hydrodata = read_hydro(cfg['hydro_path'], cfg['hydro_file'], cfg['date_interval'])
     meteodata = read_meteo(cfg['meteo_path'], cfg['meteo_file'], cfg['date_interval'])
-    __import__('pdb').set_trace()
     #write_hydro(cfg['output_path'], cfg['output_hydro'][3], hydrodata, cfg['date_interval'][0])
 
     ## STEP 2: Processing data

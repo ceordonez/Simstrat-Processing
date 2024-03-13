@@ -67,11 +67,10 @@ def read_inputs_meteo(cfg):
         cfg_sims = read_config(filecfg_sims)
         refyear = str(cfg_sims['Simulation']['Reference year'])
         datamodel = {}
-        data = pd.read_csv(os.path.join(path, lakename, modelname, 'INPUTS', filename +'.csv'))
+        data = pd.read_csv(os.path.join(path, lakename, modelname, 'INPUTS', filename +'.dat'), sep=' ')
         data['Datetime'] = pd.to_datetime(data['Time [d]'], origin=refyear, unit='D')
         data.set_index('Datetime', inplace=True)
         idata[modelname] = data
-
 
     return idata
 

@@ -6,12 +6,12 @@ WINDV: ['V.dat', 'Water Velocity N-S (m/s)']
 TKE: ['k.dat', 'TKE (J/kg)']
 EPS: ['eps.dat', 'EPS (W/kg)']
 ICE: ['ice.dat', 'Ice thickness (m)']
+HA: ['HA.dat', 'LW Radation in (W/m2)']
+HW: ['HW.dat', 'LW Radation out (W/m2)']
+HK: ['HK.dat', 'Sensible Heat (W/m2)']
+HV: ['HV.dat', 'Latent Heat (W/m2)']
+RAD0: ['Rad0.dat', 'Solar Radiation penetrating lake (W/m2)']
   #Kz: 'nuh.dat'
   #N2: 'nn.dat'
   #B: 'B.dat'
   #P: 'P.dat'
-  #LR_S: 'HA.dat'
-  #LR_W: 'HW.dat'
-  #SH: 'HK.dat'
-  #LH: 'HV.dat'
-  #RAD0: 'Rad0.dat'

@@ -12,25 +12,25 @@ def main():
 
     cfg = read_config('config_plots.yml')
     idata = read_inputs_meteo(cfg)
-    #var = 'Precipitation [mm/h]'
-    #var = 'Could cover [-]'
-    #var = 'V [m/s]'
-    var = 'V [m/s]'
-    ax = plot_timeserie(idata, var)
-    plt.show()
     __import__('pdb').set_trace()
-    #modeldata = read_model(cfg)
+    modeldata = read_model(cfg)
 
-    #plot_model(cfg, modeldata)
-
-    #var = 'TEMP'
-    #vmax = .4
-    #vmin = -vmax
-    #modeldata['DELTA_MODEL'] = {}
-    #modeldata['DELTA_MODEL'][var] = modeldata[cfg['model_names'][0]][var] - modeldata[cfg['model_names'][1]][var]
-    #ts_colormesh(modeldata, 'DELTA_MODEL', var, cmap='bwr', vmax=vmax, vmin=vmin)
+    #var = 'Precipitation [mm/h]'
+    #var = 'Cloud cover [-]'
+    #ax = plot_timeserie(idata, var)
     #plt.show()
 
+    plot_model(cfg, modeldata)
+
+    var = 'TEMP'
+    vmax = .4
+    vmin = -vmax
+    modeldata['DELTA_MODEL'] = {}
+    modeldata['DELTA_MODEL'][var] = modeldata[cfg['model_names'][0]][var] - modeldata[cfg['model_names'][1]][var]
+    ts_colormesh(modeldata, 'DELTA_MODEL', var, cmap='bwr', vmax=vmax, vmin=vmin)
+    plt.show()
+
+    __import__('pdb').set_trace()
 
 
 if __name__ == "__main__":

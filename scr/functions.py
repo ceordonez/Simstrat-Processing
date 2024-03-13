@@ -11,14 +11,14 @@ def doy365(time):
     doy[np.logical_and(leapYear,doy>59)] = doy[np.logical_and(leapYear,doy>59)]-1
     return (doy-1)
 
-def clearSkySolRad(time,pair,vap,lat):
+def clearSkySolRad(time, pair, vap, lat):
     if type(time) is not list: time=[time]
     vap = np.array(vap)
     lat = lat*np.pi/180
-    hr = np.array([t.hour+t.minute/60+t.second/3600 for t in time])
+    hr = np.array([t.hour + t.minute/60 + t.second/3600 for t in time])
     doy = doy365(time) + hr/24
-    doy_winter = doy+10
-    doy_winter[doy_winter>=365.24] = doy_winter[doy_winter>=365.24]-365.24
+    doy_winter = doy + 10
+    doy_winter[doy_winter>=365.24] = doy_winter[doy_winter>=365.24] - 365.24
     phi = np.arcsin(-0.39779*np.cos(2*np.pi/365.24*doy_winter)) #Declination of the sun (Wikipedia)
     cosZ = np.sin(lat)*np.sin(phi)+np.cos(lat)*np.cos(phi)*np.cos(np.pi/12*(hr-12.5)) #Cosine of the solar zenith angle (Wikipedia); 13.5 is the average solar noon (13h30)
     cosZ[cosZ<0] = 0
@@ -83,29 +83,33 @@ def interpNaN(x,y,tgap,valdef=np.nan):
     return y.tolist()
 
 def cloudcover(data, lake):
-            #Estimate cloudiness based on ratio between measured and theoretical solar radiation
-        #writelog('\t\tEstimating missing cloud cover data based on theoretical and measured solar radiation.\n')
-    cssr = clearSkySolRad(data.index,1013.25*np.exp((-9.81*0.029*lake['Properties']['Elevation [m]'])/(8.314*283.15)),data['Vapour pressure [mbar]'],CH1903ptoLat(lake['X [m]'],lake['Y [m]']))
+    #Estimate cloudiness based on ratio between measured and theoretical solar radiation
+    #writelog('\t\tEstimating missing cloud cover data based on theoretical and measured solar radiation.\n')
+    cssr = clearSkySolRad(data.index, 1013.25*np.exp((-9.81*0.029*lake['Properties']['Elevation [m]'])/(8.314*283.15)), data['Vapour pressure [mbar]'], CH1903ptoLat(lake['X [m]'], lake['Y [m]']))
     #Better estimate by using daily averages, giving daily values for cloud cover (at noon)
 
     data['cssr'] = cssr[0]
-    #cssr = np.array(timeAverage(data.index,cssr[0],24*60*60))
     #solrad = np.array(timeAverage(data.index,data['Solar radiation [W/m^2]'].values,24*60*60))
-    cssr = data['cssr'].resample('D').mean()
-    solrad = data['Solar radiation [W/m^2]'].resample('D').mean()
-    dcloud = 100*(1-solrad/(0.9*cssr))
+    #cssr2 = np.array(timeAverage(data.index,cssr[0],24*60*60))
+    cssr = data['cssr']#.resample('D').mean()
+#    __import__('pdb').set_trace()
+    solrad = data['Solar radiation [W/m^2]']#.resample('D').mean()
+    #__import__('pdb').set_trace()
+    dcloud = (1-solrad/(0.9*cssr))
     dcloud[dcloud<0] = 0
-    dcloud.name = 'Cloud cover [%]'
+    dcloud.name = 'Cloud cover [-]'
     data = data.join(dcloud)
-    cloud = interpNaN(data.index, data['Cloud cover [%]'].values, len(data))
-    data['Cloud cover [%]'] = np.nan
-    tsol = [calendar.timegm(t.timetuple()) for t in data.index]
-    nans = np.isnan(data['Cloud cover [%]'])
-    tnans = np.array([calendar.timegm(t.timetuple()) for t in data.index])[nans]
-    cc = np.array(data['Cloud cover [%]'])
-    cc[nans] = np.interp(tnans,tsol,cloud)
-    data['Cloud cover [%]'] = list(cc)
-    #Adapt units and perform basic checks
-    data['Cloud cover [%]'] = [cc*0.01 if not np.isnan(cc) else 0.5 for cc in data['Cloud cover [%]']]
-    data['Cloud cover [-]'] = data.pop('Cloud cover [%]')
+    data['Cloud cover [-]'] = data['Cloud cover [-]'].interpolate()
+    __import__('pdb').set_trace()
+    #cloud = interpNaN(data.index, data['Cloud cover [%]'].values, len(data))
+    #data['Cloud cover [%]'] = np.nan
+    #tsol = [calendar.timegm(t.timetuple()) for t in data.index]
+    #nans = np.isnan(data['Cloud cover [%]'])
+    #tnans = np.array([calendar.timegm(t.timetuple()) for t in data.index])[nans]
+    #cc = np.array(data['Cloud cover [%]'])
+    #cc[nans] = np.interp(tnans,tsol,cloud)
+    #data['Cloud cover [%]'] = list(cc)
+    ##Adapt units and perform basic checks
+    #data['Cloud cover [%]'] = [cc*0.01 if not np.isnan(cc) else 0.5 for cc in data['Cloud cover [%]']]
+    #data['Cloud cover [-]'] = data.pop('Cloud cover [%]')
     return data

@@ -7,9 +7,13 @@ from scr.read_data import read_config
 def plot_model(cfg, modeldata):
     for plottype in cfg['plot']:
         if plottype == 'colormesh':
-            if cfg['plot'][plottype]:
-                print('making plot')
+            if cfg['plot']['colormesh']:
+                print('making colormesh plot')
                 plot_colormesh(modeldata, cfg['plot'][plottype])
+        if plottype == 'timeseries':
+            if cfg['plot']['timeseries']:
+                plot_timeserie(modeldata, cfg['plot']['timeseries'])
+
 
 
 def plot_colormesh(modeldata, plotvars):
@@ -31,10 +35,12 @@ def ts_colormesh(modeldata, modelname, varname, cmap='viridis', vmax=None, vmin=
     cblabel = read_config('utils/config_varfile.yml')
     fig.colorbar(pc, ax=ax, label=cblabel[varname][1])
 
-def plot_timeserie(data, var):
-    fig, ax = plt.subplots()
+def plot_timeserie(data, variables):
     for modeldata in data:
-        ax.plot(data[modeldata].index, data[modeldata][var], label=modeldata)
-    ax.legend()
-    return ax
+        for var in variables:
+            fig, ax = plt.subplots(figsize=(6,3), constrained_layout=True)
+            ax.plot(data[modeldata][var].index, data[modeldata][var], label=modeldata)
+            ylabel = read_config('utils/config_varfile.yml')
+            ax.set_ylabel(ylabel[var][1])
+    plt.show()
 
