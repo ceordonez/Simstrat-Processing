@@ -4,15 +4,20 @@ import json, codecs
 import pandas as pd
 import yaml
 
+
+def read_data(cfg):
+    modeldata = read_model(cfg)
+    return modeldata
+
 def read_model(cfg):
     path = cfg['path_models']
     lakename = cfg['lake']
-    varfile = read_config('utils/config_varfile.yml')
+    varfile = read_varconfig('utils/config_varfile.yml')
     data = {}
 
     for modelname in cfg['model_names']:
         filecfg_sims = os.path.join(path, lakename, modelname, 'INPUTS', 'config_simstrat.par')
-        cfg_sims = read_config(filecfg_sims)
+        cfg_sims = read_varconfig(filecfg_sims)
         refyear = str(cfg_sims['Simulation']['Reference year'])
         datamodel = {}
 
@@ -48,7 +53,20 @@ def read_lakemeta(path, filename, lake):
 def read_config(filename):
     with open(filename, 'r') as file:
         conf_file = yaml.safe_load(file)
+
+    var = []
+    for plottype in conf_file['plot']:
+        if plottype != 'figformat':
+            var.append(conf_file['plot'][plottype])
+    var = [x for xs in var for x in xs]
+    var = list(set(var))
+    conf_file['var'] = var
     return conf_file
+
+def read_varconfig(filename):
+    with open(filename, 'r') as file:
+        conf_var = yaml.safe_load(file)
+    return conf_var
 
 def read_hydro(path, filename, date_interval):
     data = pd.read_csv(os.path.join(path, filename), sep=';', skiprows=9, usecols=[6,8], names=['Datetime', 'Q_in [m3/s]'])
@@ -60,11 +78,11 @@ def read_inputs_meteo(cfg):
     path = cfg['path_models']
     filename = cfg['input_file']
     lakename = cfg['lake']
-    varfile = read_config('utils/config_varfile.yml')
+    varfile = read_varconfig('utils/config_varfile.yml')
     idata = {}
     for modelname in cfg['model_names']:
         filecfg_sims = os.path.join(path, lakename, modelname, 'INPUTS', 'config_simstrat.par')
-        cfg_sims = read_config(filecfg_sims)
+        cfg_sims = read_varconfig(filecfg_sims)
         refyear = str(cfg_sims['Simulation']['Reference year'])
         datamodel = {}
         data = pd.read_csv(os.path.join(path, lakename, modelname, 'INPUTS', filename +'.dat'), sep=' ')

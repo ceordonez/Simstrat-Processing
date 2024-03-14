@@ -1,17 +1,16 @@
 
 lake: 'HALLWIL'
 path_models: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
-  #model_names: ['EAWAG_RESULTS','EAWAG_INPUTS_BASE']
 model_names: ['EAWAG_INPUTS_BASE']
-  #model_names: ['MY_TESTZURICH', 'TEST_ZURICH']
+  #model_names: ['EAWAG_RESULTS']
 time_span: ['01-01-1981', '01-01-2023 00:00']
+
 input_file: 'Forcing'
 
-  #var: ['TEMP']
-var: ['HW','HA', 'HV', 'HK', 'RAD0']
-
 plot:
-  colormesh: []
+  colormesh: ['TEMP', 'SAL']
     #colormesh: ['TEMP']
-  timeseries: ['HW','HA', 'HV', 'HK', 'RAD0']
+  timeseries: ['HW','HA', 'HV', 'HK', 'RAD0', 'ICE']
+    #timeseries: ['ICE']
     #timeseries: []
+  figformat: 'png'
