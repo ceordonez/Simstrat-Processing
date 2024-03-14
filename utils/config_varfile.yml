@@ -1,17 +1,31 @@
 
-TEMP: ['T.dat', 'Temperature (°C)']
-SAL: ['S.dat', 'Salinity (permill)']
-WINDU: ['U.dat', 'Water Velicity E-W (m/s)']
-WINDV: ['V.dat', 'Water Velocity N-S (m/s)']
-TKE: ['k.dat', 'TKE (J/kg)']
-EPS: ['eps.dat', 'EPS (W/kg)']
-ICE: ['ice.dat', 'Ice thickness (m)']
-HA: ['HA.dat', 'LW Radation in (W/m2)']
-HW: ['HW.dat', 'LW Radation out (W/m2)']
-HK: ['HK.dat', 'Sensible Heat (W/m2)']
-HV: ['HV.dat', 'Latent Heat (W/m2)']
-RAD0: ['Rad0.dat', 'Solar Radiation penetrating lake (W/m2)']
-  #Kz: 'nuh.dat'
-  #N2: 'nn.dat'
-  #B: 'B.dat'
-  #P: 'P.dat'
+WINDU: ['U.dat', 'Water Velicity E-W (\si{\meter\per\second})']
+WINDV: ['V.dat', 'Water Velocity N-S (\si{\meter\per\second})']
+TEMP: ['T.dat', 'Temperature (\si{\degreeCelsius})']
+SAL: ['S.dat', 'Salinity (\si{\permille})']
+TKE: ['k.dat', 'TKE (\si{\joule\per\kilo\gram})']
+EPS: ['eps.dat', 'EPS (\si{\watt\per\kilo\gram})']
+NUH: ['nuh.dat', 'Turbulent diffusivity of temperature (\si{\joule\second\per\kilo\gram})']
+NUM: ['num.dat', 'Turbulent diffusivity of momentum (\si{\square\meter\per\second})']
+N2: ['NN.dat', 'Brunt-Väisälä frequency (\si{\per\square\second})']
+B: ['B.dat','Production rate of boyancy (\si{\watt\per\kilo\gram})']
+P: ['P.dat', 'Production rate of shear stress (\si{\watt\per\kilo\gram})']
+Ps: ['Ps.dat', 'Production rate of seiche energy (\si{\watt\per\kilo\gram})']
+HA: ['HA.dat', 'LW Radation in (\si{\watt\per\square\meter})']
+HW: ['HW.dat', 'LW Radation out (\si{\watt\per\square\meter})']
+HK: ['HK.dat', 'Sensible Heat (\si{\watt\per\square\meter})']
+HV: ['HV.dat', 'Latent Heat (\si{\watt\per\square\meter})']
+RAD0: ['Rad0.dat', 'Solar Radiation penetrating lake (\si{\watt\per\square\meter})']
+ICE: ['TotalIceH.dat', 'Ice thickness (\si{\meter})']
+BICE: ['BlackIceH', 'Black ice thickness (\si{\meter})']
+WICE: ['WhiteIceH', 'White ice thickness (\si{\meter})']
+SNOW: ['SnowH.dat', 'Snow heigh above ice (\si{\meter})']
+WATH: ['WaterH.dat', 'Water depth (\si{\meter})']
+QVERT: ['Qvert.dat', 'Vertical advection (\si{\cubic\meter\per\second})']
+ESEI: ['Eseiche.dat', 'Total seiche energy (\si{\joule})']
+
+T0: ['T.dat', 'Surface temperature (\si{\degreeCelsius})']
+TB: ['T.dat', 'Bottom temperature (\si{\degreeCelsius})']
+
+## INPUTS VARIABLES
+I_KL: ['Absortion.dat', 'Light Absortion (\si{\per\meter})']
