@@ -1,14 +1,20 @@
 # MAIN CONFIG
 #
-lake: 'Lake Hallwil'
+#lake: 'Lake Hallwil'
+lake: 'HALLWIL'
 date_interval: ['2000-01-01', '2019-01-01 00:00']
+modelname: 'EAWAG_INPUTS_BASE'
 
 # PATHS
 #
+path_models: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
 meta_path: '/home/cesar/Documentos/PhD/PY_projects/Simstrat-WorkflowModellingSwissLakes'
 meteo_path: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/INPUTS/MY_HALLWIL_INPUTS/MET_LUZ_2000_2022'
 hydro_path: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/INPUTS/MY_HALLWIL_INPUTS/15065_4410_2024-02-06_14-22-15/'
 output_path: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS/HALLWIL/TEST_2000-2005flow/INPUTS'
+input_path: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/INPUTS'
+path_figures: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/FIGURES'
+
 
 # FILES
 #

@@ -114,11 +114,12 @@ def read_inputs_meteo(cfg):
 
     return idata
 
-def read_forcing(filename):
+def read_forcing(cfg, filename):
     """TODO: Docstring for read_forcing.
 
     Parameters
     ----------
+    cfg: TODO
     file : TODO
 
     Returns
@@ -126,6 +127,17 @@ def read_forcing(filename):
     TODO
 
     """
-    alldatafile = pd.read_csv(filename, sep='\s+')
-    alldatafile.rename(columns={'Time [d]':'Datetime'}, inplace=True)
 
+    path = cfg['path_models']
+    lakename = cfg['lake']
+    modelname = cfg['modelname']
+    filecfg_sims = os.path.join(path, lakename, modelname, 'INPUTS', 'config_simstrat.par')
+    cfg_sims = read_varconfig(filecfg_sims)
+    refyear = str(cfg_sims['Simulation']['Reference year'])
+    filename = os.path.join(cfg['input_path'], cfg['lake'], filename)
+    data= pd.read_csv(filename, sep='\s+')
+    data.rename(columns={'Time [d]':'Datetime'}, inplace=True)
+    data['Datetime'] = pd.to_datetime(data.Datetime, origin=refyear, unit='D')
+    data= data.set_index('Datetime')
+
+    return data
