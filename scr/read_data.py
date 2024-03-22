@@ -20,17 +20,39 @@ def read_model(cfg):
         cfg_sims = read_varconfig(filecfg_sims)
         refyear = str(cfg_sims['Simulation']['Reference year'])
         datamodel = {}
-
+        var1d_first = True
         for var in cfg['var']:
             varf = varfile[var][0]
-            newfile = '_'.join([lakename, varf])
-            datafile = pd.read_csv(os.path.join(path, lakename, modelname, newfile))
+            if 'I' in var.split('_'):
+                filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
+                if varf == 'Forcing.dat':
+                    alldatafile = pd.read_csv(filename, sep='\s+')
+                    alldatafile.rename(columns={'Time [d]':'Datetime'}, inplace=True)
+                    if var == 'I_RAD':
+                        datafile = alldatafile.loc[:,['Datetime', 'Solar radiation [W/m^2]']]
+                    if var == 'I_VAP':
+                        datafile = alldatafile.loc[:,['Datetime', 'Vapour pressure [mbar]']]
+                else:
+                    datafile = pd.read_csv(filename, skiprows=3, sep='\s+', names=['Datetime',var])
+            else:
+                newfile = '_'.join([lakename, varf])
+                filename = os.path.join(path, lakename, modelname, newfile)
+                datafile = pd.read_csv(filename)
             datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
             datafile = datafile.set_index('Datetime')
             if '-0.000' in datafile.columns:
                 datafile.rename(columns={'-0.000':'0.000'}, inplace=True)
-            datamodel[var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]
-
+            if varfile[var][2] == '1D':
+                datafile.rename(columns={datafile.columns[0]:var}, inplace=True)
+                if var1d_first:
+                    datamodel['1D'] = pd.DataFrame(datafile[cfg['time_span'][0]:cfg['time_span'][1]])
+                    var1d_first = False
+                else:
+                    datamodel['1D'] = pd.concat([datamodel['1D'], datafile[cfg['time_span'][0]:cfg['time_span'][1]]], axis=1, join='outer')
+            if varfile[var][2] == '2D':
+                datamodel['2D'] = {}
+                datamodel['2D'][var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]
+        #datamodel['1D'].sort_index(inplace=True)
         data[modelname] = datamodel
     return data
 
@@ -56,7 +78,7 @@ def read_config(filename):
 
     var = []
     for plottype in conf_file['plot']:
-        if plottype != 'figformat':
+        if plottype not in ['figformat', 'save']:
             var.append(conf_file['plot'][plottype])
     var = [x for xs in var for x in xs]
     var = list(set(var))
@@ -91,4 +113,19 @@ def read_inputs_meteo(cfg):
         idata[modelname] = data
 
     return idata
+
+def read_forcing(filename):
+    """TODO: Docstring for read_forcing.
+
+    Parameters
+    ----------
+    file : TODO
+
+    Returns
+    -------
+    TODO
+
+    """
+    alldatafile = pd.read_csv(filename, sep='\s+')
+    alldatafile.rename(columns={'Time [d]':'Datetime'}, inplace=True)
 

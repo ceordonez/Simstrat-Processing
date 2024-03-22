@@ -1,3 +1,4 @@
+from operator import index
 import os
 
 import pandas as pd
@@ -28,3 +29,28 @@ def write_hydro(path, filename, data, basedate):
     #        fid.write(' %9.4f' % data['Flowrate [m^3/s]']['Data'][it])
     #        fid.write('\n')
     #fid.close()
+
+def write_data(cfg, data):
+    """Write process data
+
+    Parameters
+    ----------
+    cfg : TODO
+    data : TODO
+
+    Returns
+    -------
+    TODO
+
+    """
+    if cfg['writedata']:
+        for model in data:
+            if '1D' in data[model]:
+                for tavg in data[model]['1D']:
+                    var = '_'.join(data[model]['1D'][tavg].columns)
+                    filename = '_'.join([cfg['lake'],model,tavg, var])
+                    if not os.path.exists(cfg['path_outfiles']):
+                        os.makedirs(cfg['path_outfiles'])
+                    filename = os.path.join(cfg['path_outfiles'],filename +'.csv')
+                    data[model]['1D'][tavg].reset_index(inplace=True)
+                    data[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')

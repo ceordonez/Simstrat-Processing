@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 import scr.functions as fn
+from scr.read_data import read_varconfig
 
 
 def processing_meteo(data, meta):
@@ -21,6 +22,48 @@ def processing_meteo(data, meta):
 
 def processing_hydro(data, meta):
     return []
+
+def process_model(cfg, modeldata):
+    """Process model data
+
+    Parameters
+    ----------
+    cfg : TODO
+    modeldata : TODO
+
+    Returns
+    -------
+    TODO
+
+    """
+    if cfg['timeaverage']:
+        data = {}
+        for model in modeldata:
+            if '1D' in modeldata[model]:
+                data = {model: {'1D': {}}}
+            if '2D' in modeldata[model]:
+                data = {model: {'2D': {}}}
+            for time_avg in cfg['timeaverage']:
+                if '1D' in modeldata[model]:
+                    data[model]['1D'].update({'ORG':modeldata[model]['1D']})
+                    if time_avg == 'M':
+                        avgdata = modeldata[model]['1D'].resample('ME').mean()
+                        data[model]['1D'].update({'MONTHLY': avgdata})
+                    if time_avg == 'Y':
+                        avgdata = modeldata[model]['1D'].resample('YE').mean()
+                        data[model]['1D'].update({'YEARLY': avgdata})
+                if '2D' in modeldata[model]:
+                    for var in modeldata['2D']:
+                        data[model]['2D'].update({'ORG':modeldata[model]['2D']})
+                        if time_avg == 'M':
+                            avgdata = modeldata[model]['2D'][var].resample('ME').mean()
+                            data[model]['2D'] = {'MONTHLY': {var: avgdata}}
+                        if time_avg == 'Y':
+                            avgdata = modeldata[model]['2D'][var].resample('YE').mean()
+                            data[model]['2D'] = {'YEARLY': {var: avgdata}}
+        return data
+    else:
+        return modeldata
 
 def cond2sal(cond):
     K1 =  0.0120
