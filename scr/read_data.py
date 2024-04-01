@@ -97,7 +97,7 @@ def read_hydro(path, filename, date_interval):
     return data[date_interval[0]:date_interval[1]]
 
 def read_inputs_meteo(cfg):
-    path = cfg['path_models']
+    path = cfg['paths']['models']
     filename = cfg['input_file']
     lakename = cfg['lake']
     varfile = read_varconfig('utils/config_varfile.yml')
@@ -128,13 +128,13 @@ def read_forcing(cfg, filename):
 
     """
 
-    path = cfg['path_models']
+    path = cfg['paths']['models']
     lakename = cfg['lake']
     modelname = cfg['modelname']
     filecfg_sims = os.path.join(path, lakename, modelname, 'INPUTS', 'config_simstrat.par')
     cfg_sims = read_varconfig(filecfg_sims)
     refyear = str(cfg_sims['Simulation']['Reference year'])
-    filename = os.path.join(cfg['input_path'], cfg['lake'], filename)
+    filename = os.path.join(cfg['paths']['input'], cfg['lake'], filename)
     data= pd.read_csv(filename, sep='\s+')
     data.rename(columns={'Time [d]':'Datetime'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data.Datetime, origin=refyear, unit='D')
