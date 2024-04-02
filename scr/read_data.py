@@ -141,3 +141,16 @@ def read_forcing(cfg, filename):
     data= data.set_index('Datetime')
 
     return data
+
+def read_absorption(cfg, filename):
+    path = cfg['paths']['models']
+    lakename = cfg['lake']
+    modelname = cfg['modelname']
+    filecfg_sims = os.path.join(path, lakename, modelname, 'INPUTS', 'config_simstrat.par')
+    cfg_sims = read_varconfig(filecfg_sims)
+    refyear = str(cfg_sims['Simulation']['Reference year'])
+    filename = os.path.join(cfg['paths']['input'], cfg['lake'], filename)
+    data= pd.read_csv(filename, sep='\s+', skiprows=3, names=['Datetime', 'I_KL'])
+    data['Datetime'] = pd.to_datetime(data.Datetime, origin=refyear, unit='D')
+    data= data.set_index('Datetime')
+    return data
