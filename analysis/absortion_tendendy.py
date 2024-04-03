@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import pyhomogeneity as ho
 import pymannkendall as mk
+from statsmodels.tsa.seasonal import seasonal_decompose, STL
+from statsmodels.tsa.ar_model import AutoReg
 from scr.read_data import read_config, read_absorption, read_varconfig
 
 import functions as fn
@@ -22,14 +24,17 @@ plt.style.use('~/.config/matplotlib/aslo-paper.mplstyle')
 PATHOUT ='/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/INPUTS/HALLWIL/'
 LOC = '2002'
 
+
 cfg = read_varconfig('../config_preprocessing.yml')
 
-inputdata = read_absorption(cfg, 'Absorption.dat')
+PATHFIG = os.path.join(cfg['paths']['figures'],'PRE_PROSCESING')
 
-fig, ax = plt.subplots()
-ax.plot(inputdata, label='org', color='r')
-ax.plot(inputdata.resample('ME').mean(), '-o', label='monthly')
-ax.legend()
+if not os.path.exists(PATHFIG):
+    os.makedirs(PATHFIG)
+
+inputdata = read_absorption(cfg, 'Absorption.dat')
+data = inputdata.resample('SME').mean().ffill()
+aux = inputdata.resample('SME').mean()
 
 datap1 = inputdata.loc[:LOC]
 datap2 = inputdata.loc[LOC:]
@@ -38,57 +43,71 @@ respt2 = ho.pettitt_test(datap2)
 loc1 = pd.to_datetime(respt1.cp)
 loc2 = pd.to_datetime(respt2.cp)
 
+ylabel = read_varconfig('../utils/config_varfile.yml')
+fig, ax = plt.subplots(1, 1, figsize=(6, 2.5), layout='constrained')
+ax.plot(inputdata, '-o', label='Obs')
+ax.plot(data, '-o', label='Monthly Filled')
+ax.plot(aux, '-o', label='Monthly')
+ax.axvline(x=loc1, linestyle='-.', color='r', label='Change point : '+ loc1.strftime('%Y-%m') + '\n p-value : ' + str(respt1.p))
+ax.axvline(x=loc2, linestyle='-.', color='r', label='Change point : '+ loc2.strftime('%Y-%m') + '\n p-value : ' + str(respt2.p))
+ax.legend()
+ax.set_ylabel(ylabel['I_KL'][1])
+figname = '_'.join(['Bi-weakly-average', 'I_KL'])
+fig.savefig(os.path.join(PATHFIG, figname) + '.png', dpi=300)
+plt.close()
 
-print(loc1, loc2)
+res1 = seasonal_decompose(data[:loc1], model='additive', period=24)
+res2 = seasonal_decompose(data[loc1:loc2], model='additive', period=24)
+res3 = seasonal_decompose(data[loc2:], model='additive', period=24)
+
+#res1 = STL(data[:loc1],period=25)
+#res2 = STL(data[loc1:loc2], period=25)
+#res3 = STL(data[loc2:], period=25)
+
+for i, res in enumerate([res1, res2, res3]):
+    fig = res.plot()
+    fig.set_size_inches(6, 5.5)
+    axs = fig.get_axes()
+    fig.tight_layout()
+    axs[0].set_ylabel(ylabel['I_KL'][1])
+    figlabel = 'P'+ str(i)
+    figname = '_'.join(['Seasonal_decomposition', 'I_KL', figlabel])
+    fig.savefig(os.path.join(PATHFIG, figname) + '.png', dpi=300)
+    plt.close()
+
+
+datap1 = res1.seasonal + data[:loc1].mean().values
+datap2 = res2.seasonal + data[loc1:loc2].mean().values
+datap3 = res3.seasonal + data[loc2:].mean().values
+
+fig, ax = plt.subplots(1, 1, figsize=(6, 2.5), layout='constrained')
+ax.plot(inputdata, '-o', label='Obs')
+ax.plot(datap1, label='mu : ' + str(round(datap1.mean(),2)))
+ax.plot(datap2, label='mu : ' + str(round(datap2.mean(),2)))
+ax.plot(datap3, label='mu : ' + str(round(datap3.mean(),2)))
+ax.axvline(x=loc1, linestyle='-.', color='r', label='Change point : '+ loc1.strftime('%Y-%m') + '\n p-value : ' + str(respt1.p))
+ax.axvline(x=loc2, linestyle='-.', color='r', label='Change point : '+ loc2.strftime('%Y-%m') + '\n p-value : ' + str(respt2.p))
+ax.legend()
+ax.set_ylabel(ylabel['I_KL'][1])
+figname = '_'.join(['Simulated', 'I_KL'])
+fig.savefig(os.path.join(PATHFIG, figname) + '.png', dpi=300)
+plt.close()
+
+for i, datap in enumerate([datap1, datap2, datap3]):
+    model = AutoReg(datap, lags=25).fit()
+    pred = model.predict(start=len(datap), end=len(data)-1, dynamic=False)
+
+    sdata = pd.concat([datap, pred])
+    rsdata = pd.Series(sdata.values, index=data.index)
+    title = 'P' + str(i)
+    fig, ax = plt.subplots(1, 1, figsize=(6, 2.5), layout='constrained')
+    ax.set_title(title)
+    ax.plot(data)
+    ax.plot(rsdata)
+    ax.set_ylabel(ylabel['I_KL'][1])
+    filename = '_'.join(['Absorption', title])
+    figname = '_'.join(['Simulated', 'I_KL', 'AllPeriod', title])
+    fig.savefig(os.path.join(PATHFIG, figname) + '.png', dpi=300)
+    pddata = pd.DataFrame({'I_KL':rsdata.values}, index=rsdata.index)
+    wr.write_absorption(cfg, pddata, PATHOUT, filename)
 plt.show()
-__import__('pdb').set_trace()
-
-#inputdata = fn.select_season(inputdata, SEASON)
-
-datam = inputdata[VAR].resample('ME').mean()
-datay = inputdata[VAR].resample('YE').mean()
-
-# Find tipping point using yearly average data
-
-mu1 = respt.avg.mu1
-mu2 = respt.avg.mu2
-
-newdata = fn.normalize_data(inputdata, loc, VAR)
-newdatam = newdata[VAR].resample('ME').mean()
-newdatay = newdata[VAR].resample('YE').mean()
-mu3 = newdata.loc[loc:, VAR].mean()
-
-# Find the tendency for the periods define with the pettitt test on montly data
-if SEASON == '':
-    PERIOD = 12
-    resst0 = mk.seasonal_test(datam, period=PERIOD)
-    resst1 = mk.seasonal_test(datam[:loc], period=PERIOD)
-    resst2 = mk.seasonal_test(datam[loc:], period=PERIOD)
-    resst3 = mk.seasonal_test(newdatam[loc:], period=PERIOD)
-
-    trend1 = np.arange(len(datam[:loc]))/PERIOD*resst1.slope + resst1.intercept
-    trend2 = np.arange(len(datam[loc:]))/PERIOD*resst2.slope + resst2.intercept
-
-    print('SEASONAL TEST USING MONTLY DATA')
-    print('Trend entire period:', resst1.trend, 'p-value:', resst0.p, 'Average:', inputdata.loc[:, VAR].mean(), 'Slope:', resst0.slope/PERIOD)
-    print('Trend until:', loc, resst1.trend, 'p-value:', resst1.p, 'Average:', inputdata.loc[:loc, VAR].mean(), 'Solpe:', resst1.slope/PERIOD)
-    print('Trend from:', loc, resst2.trend, 'p-value:', resst2.p, 'Average:', inputdata.loc[loc:, VAR].mean(), 'Slope:', resst2.slope/PERIOD)
-    print('New trend from:', loc, resst3.trend, 'p-value:', resst3.p, 'Average:', newdata.loc[loc:, VAR].mean(), 'Slope:', resst3.slope/PERIOD)
-
-    pl.plot_ts(inputdata, newdata, VAR, loc, respt, mu3, resst1, resst2, PERIOD, SEASON, cfg)
-
-res0 = mk.original_test(datay)
-res1 = mk.original_test(datay[:loc])
-res2 = mk.original_test(datay[loc:])
-res3 = mk.original_test(newdatay[loc:])
-
-print('ORIGINAL TEST USING YEARLY DATA')
-print('Trend entire period:', res1.trend, 'Average:', inputdata.loc[:, VAR].mean(), 'Slope:', res0.slope)
-print('Trend until:', loc, res1.trend, 'Average:', inputdata.loc[:loc, VAR].mean(), 'Slope:', res1.slope)
-print('Trend from:', loc, res2.trend, 'Average:', inputdata.loc[loc:, VAR].mean(), 'Slope:', res2.slope)
-print('New trend from:', loc, res3.trend, 'Average:', newdata.loc[loc:, VAR].mean(), 'Slope:', res3.slope)
-pl.plot_ts(inputdata, newdata, VAR, loc, respt, mu3, res1, res2, 1, SEASON, cfg)
-
-plt.show()
-
-wr.write_forcing(cfg, newdata, VAR, PATHOUT)
