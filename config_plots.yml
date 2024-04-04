@@ -1,11 +1,14 @@
 
 lake: 'HALLWIL'
+path_obs: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/Raw'
 path_models: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
 path_figures: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/FIGURES'
 path_outfiles: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/OUTFILES'
 model_names: ['EAWAG_INPUTS_BASE']
   #model_names: ['EAWAG_RESULTS']
 time_span: ['01-01-1981', '31-12-2021 00:00']
+file_wtempprof: 'Temperature_bafu85_98probes20.csv'
+file_secchi: 'secchi8519.xlsx'
 
 writedata: True
 timeaverage: ['M', 'Y']
@@ -13,7 +16,7 @@ timeaverage: ['M', 'Y']
 makeplots: False
 plot:
   colormesh: []
-  timeseries: ['I_RAD', 'I_VAP', 'I_KL']
+  timeseries: ['O_TEMP0', 'O_SD']
   figformat: 'png'
   save: True
 

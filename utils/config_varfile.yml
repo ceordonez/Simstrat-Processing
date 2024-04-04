@@ -31,3 +31,7 @@ TB: ['T.dat', 'Bottom temperature (\si{\degreeCelsius})', '1D']
 I_KL: ['Absorption.dat', 'Light Absortion (\si{\per\meter})', '1D']
 I_RAD: ['Forcing.dat', 'Solar Radiation (\si{\watt\per\square\meter\per\day})', '1D']
 I_VAP: ['Forcing.dat', 'Vapor Pressure (\si{\hecto\pascal})', '1D']
+
+O_TEMPP: ['', 'Temperature (\si{\degreeCelsius})', '2D']
+O_TEMP0: ['', 'Temperature (\si{\degreeCelsius})', '1D']
+O_SD: ['', 'Secchi disk depth (\si{\meter})', '1D']
