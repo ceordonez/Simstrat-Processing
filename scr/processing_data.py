@@ -23,6 +23,26 @@ def processing_meteo(data, meta):
 def processing_hydro(data, meta):
     return []
 
+def process_obsdata(cfg, obsdata):
+    if cfg['timeaverage']:
+        data = {}
+        if '1D' in obsdata:
+            data = {'1D': {}}
+        if '2D' in obsdata:
+            data = {'2D': {}}
+        for time_avg in cfg['timeaverage']:
+            if '1D' in obsdata:
+                if time_avg == 'M':
+                    avgdata = obsdata['1D'].resample('ME').mean()
+                    data['1D'].update({'MONTHLY': avgdata})
+                if time_avg == 'Y':
+                    avgdata = obsdata['1D'].resample('YE').mean()
+                    data['1D'].update({'MONTHLY': avgdata})
+                if time_avg == 'YS':
+                    avgdata = obsdata['1D'].resample('YE').sum()
+                    data['1D'].update({'MONTHLY': avgdata})
+
+
 def process_model(cfg, modeldata):
     """Process model data
 

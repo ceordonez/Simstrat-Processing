@@ -1,13 +1,73 @@
+import codecs
+import json
 import os
 
-import json, codecs
 import pandas as pd
+from pandas._config import using_copy_on_write
 import yaml
 
 
 def read_data(cfg):
     modeldata = read_model(cfg)
     return modeldata
+
+def read_obs(cfg):
+    """Read observation data.
+
+    Parameters
+    ----------
+    cfg : TODO
+
+    Returns
+    -------
+    TODO
+
+    """
+    data = {}
+    if 'O_TEMPP' in cfg['var']:
+        data_tp = pd.read_csv(os.path.join(path, cfg['file_wtempprof']))
+        if 'date_complete' in data_tp.columns:
+            data_tp.rename(columns={'date_complete': 'Datetime'}, inplace=True)
+        data['Datetime'] = pd.to_datetime(data['Datetime'])
+        data.update({'2D': {'O_TEMPP': data_tp}})
+    
+    if 'O_TEMP0' in cfg['var']:
+        data_t0 = read_watertemp0(cfg)
+        if '1D' not in data:
+            data_t0 = {'O_TEMP0': data_t0}
+            data.update({'1D': data_t0})
+        else:
+            data['1D']['O_TEMP0'] = data_t0
+    if 'O_SD' in cfg['var']:
+        data_sd = read_secchi(cfg)
+        if '1D' not in data:
+            data_sd = {'O_SD': data_sd}
+            data.update({'1D': data_sd})
+        else:
+            data['1D']['O_SD'] = data_sd
+    return data
+
+def read_watertemp0(cfg):
+    path = cfg['path_obs']
+    data = pd.read_csv(os.path.join(path, cfg['file_wtempprof']), usecols=[2,4,5])
+    data = data.loc[data.depth == 0]
+    del data['depth']
+    if 'date_complete' in data.columns:
+        data.rename(columns={'date_complete': 'Datetime'}, inplace=True)
+    data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
+    data.sort_values(by='Datetime', inplace=True)
+    data.set_index('Datetime', inplace=True)
+    return data
+
+def read_secchi(cfg):
+    path = cfg['path_obs']
+    data = pd.read_excel(os.path.join(path, cfg['file_secchi']), usecols=[3, 7])
+    if 'date_complete' in data.columns:
+        data.rename(columns={'date_complete': 'Datetime'}, inplace=True)
+    data['Datetime'] = pd.to_datetime(data['Datetime'])
+    data.sort_values(by='Datetime', inplace=True)
+    data.set_index('Datetime', inplace=True)
+    return data
 
 def read_model(cfg):
     path = cfg['path_models']
