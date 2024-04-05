@@ -71,13 +71,17 @@ def plot_timeserie(cfg, data, variables, path_figures, save=True):
                 plt.close()
 
     if len(data.keys())>1: #plot different models together, missing TAVG
-        __import__('pdb').set_trace()
+        tavgs = cfg['timeaverage']
+        tavgs.append('ORG')
         for var in variables:
-            fig, ax = plt.subplots(figsize=(6,3), layout='constrained')
-            for modelname in data:
-                data[modelname]['1D'][var].plot(label=modelname)
-            ax.set_ylabel(ylabel[var][1])
-            ax.legend()
-            namefig = '_'.join(['TS', cfg['lake'], data.keys(), var])
-            fig.savefig(os.path.join(path_figures, namefig) + '.' + cfg['plot']['figformat'], format=cfg['plot']['figformat'])
-            plt.close()
+            for tavg in tavgs:
+                fig, ax = plt.subplots(figsize=(6,3), layout='constrained')
+                if tavg == 'Y': tavg='YEARLY'
+                elif tavg == 'M': tavg='MONTHLY'
+                for modelname in data:
+                    data[modelname]['1D'][tavg][var].plot(label=modelname)
+                ax.set_ylabel(ylabel[var][1])
+                ax.legend()
+                namefig = '_'.join(['TS', cfg['lake'], '_'.join([*data.keys()]), var, tavg])
+                fig.savefig(os.path.join(path_figures, namefig) + '.' + cfg['plot']['figformat'], format=cfg['plot']['figformat'])
+                plt.close()

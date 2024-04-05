@@ -60,9 +60,9 @@ def process_model(cfg, modeldata):
         data = {}
         for model in modeldata:
             if '1D' in modeldata[model]:
-                data = {model: {'1D': {}}}
+                data.update({model: {'1D': {}}})
             if '2D' in modeldata[model]:
-                data = {model: {'2D': {}}}
+                data.update({model: {'2D': {}}})
             for time_avg in cfg['timeaverage']:
                 if '1D' in modeldata[model]:
                     data[model]['1D'].update({'ORG':modeldata[model]['1D']})
