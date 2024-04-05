@@ -96,36 +96,37 @@ def read_model(cfg):
         datamodel = {}
         var1d_first = True
         for var in cfg['var']:
-            varf = varfile[var][0]
-            if 'I' in var.split('_'):
-                filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
-                if varf == 'Forcing.dat':
-                    alldatafile = pd.read_csv(filename, sep='\s+')
-                    alldatafile.rename(columns={'Time [d]':'Datetime'}, inplace=True)
-                    if var == 'I_RAD':
-                        datafile = alldatafile.loc[:,['Datetime', 'Solar radiation [W/m^2]']]
-                    if var == 'I_VAP':
-                        datafile = alldatafile.loc[:,['Datetime', 'Vapour pressure [mbar]']]
+            if 'O' not in var.split('_'):
+                varf = varfile[var][0]
+                if 'I' in var.split('_'):
+                    filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
+                    if varf == 'Forcing.dat':
+                        alldatafile = pd.read_csv(filename, sep='\s+')
+                        alldatafile.rename(columns={'Time [d]':'Datetime'}, inplace=True)
+                        if var == 'I_RAD':
+                            datafile = alldatafile.loc[:,['Datetime', 'Solar radiation [W/m^2]']]
+                        if var == 'I_VAP':
+                            datafile = alldatafile.loc[:,['Datetime', 'Vapour pressure [mbar]']]
+                    else:
+                        datafile = pd.read_csv(filename, skiprows=3, sep='\s+', names=['Datetime',var])
                 else:
-                    datafile = pd.read_csv(filename, skiprows=3, sep='\s+', names=['Datetime',var])
-            else:
-                newfile = '_'.join([lakename, varf])
-                filename = os.path.join(path, lakename, modelname, newfile)
-                datafile = pd.read_csv(filename)
-            datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
-            datafile = datafile.set_index('Datetime')
-            if '-0.000' in datafile.columns:
-                datafile.rename(columns={'-0.000':'0.000'}, inplace=True)
-            if varfile[var][2] == '1D':
-                datafile.rename(columns={datafile.columns[0]:var}, inplace=True)
-                if var1d_first:
-                    datamodel['1D'] = pd.DataFrame(datafile[cfg['time_span'][0]:cfg['time_span'][1]])
-                    var1d_first = False
-                else:
-                    datamodel['1D'] = pd.concat([datamodel['1D'], datafile[cfg['time_span'][0]:cfg['time_span'][1]]], axis=1, join='outer')
-            if varfile[var][2] == '2D':
-                datamodel['2D'] = {}
-                datamodel['2D'][var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]
+                    newfile = '_'.join([lakename, varf])
+                    filename = os.path.join(path, lakename, modelname, newfile)
+                    datafile = pd.read_csv(filename)
+                datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
+                datafile = datafile.set_index('Datetime')
+                if '-0.000' in datafile.columns:
+                    datafile.rename(columns={'-0.000':'0.000'}, inplace=True)
+                if varfile[var][2] == '1D':
+                    datafile.rename(columns={datafile.columns[0]:var}, inplace=True)
+                    if var1d_first:
+                        datamodel['1D'] = pd.DataFrame(datafile[cfg['time_span'][0]:cfg['time_span'][1]])
+                        var1d_first = False
+                    else:
+                        datamodel['1D'] = pd.concat([datamodel['1D'], datafile[cfg['time_span'][0]:cfg['time_span'][1]]], axis=1, join='outer')
+                if varfile[var][2] == '2D':
+                    datamodel['2D'] = {}
+                    datamodel['2D'][var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]
         #datamodel['1D'].sort_index(inplace=True)
         data[modelname] = datamodel
 

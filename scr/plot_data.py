@@ -1,4 +1,5 @@
 import os
+import logging
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -9,6 +10,7 @@ plt.style.use('~/.config/matplotlib/aslo-paper.mplstyle')
 def plot_data(cfg, obsdata, modeldata):
 
     if modeldata:
+        logging.info('Plotting models')
         plot_model(cfg, modeldata)
     if obsdata:
         plot_obsdata(cfg, obsdata)
@@ -68,9 +70,11 @@ def plot_model(cfg, modeldata):
         for plottype in cfg['plot']:
             if plottype == 'colormesh':
                 if cfg['plot']['colormesh']:
+                    logging.info('Plotting colormesh')
                     plot_colormesh(cfg, modeldata, cfg['plot'][plottype], path_figures, save)
             if plottype == 'timeseries':
                 if cfg['plot']['timeseries']:
+                    logging.info('Plotting timeseries')
                     plot_modeltimeserie(cfg, modeldata, cfg['plot']['timeseries'], path_figures, save)
         if not save:
             plt.show()
@@ -123,31 +127,34 @@ def make_ts(cfg, data, var, label, ylabel, tavg, td='MODEL'):
 def plot_modeltimeserie(cfg, data, variables, path_figures, save=True):
     ylabel = read_varconfig('utils/config_varfile.yml')
     for var in variables:
-        for modelname in data:
-            for tavg in data[modelname]['1D']:
-                dataplot = data[modelname]['1D'][tavg][var]
-                fig = make_ts(cfg, dataplot, var, modelname, ylabel, tavg)
-                path_figmodel = os.path.join(path_figures, modelname)
-                if not os.path.exists(path_figmodel):
-                    os.makedirs(path_figmodel)
-                namefig = '_'.join(['TS', cfg['lake'], modelname, tavg, var])
-                if save:
-                    figfile = os.path.join(path_figmodel, namefig) + '.' + cfg['plot']['figformat']
-                    fig.savefig(figfile, format=cfg['plot']['figformat'])
-                    plt.close()
+        if 'O' not in var.split('_'):
+            for modelname in data:
+                logging.info('Plotting %s for model: %s', var, modelname)
+                for tavg in data[modelname]['1D']:
+                    dataplot = data[modelname]['1D'][tavg][var]
+                    fig = make_ts(cfg, dataplot, var, modelname, ylabel, tavg)
+                    path_figmodel = os.path.join(path_figures, modelname)
+                    if not os.path.exists(path_figmodel):
+                        os.makedirs(path_figmodel)
+                    namefig = '_'.join(['TS', cfg['lake'], modelname, tavg, var])
+                    if save:
+                        figfile = os.path.join(path_figmodel, namefig) + '.' + cfg['plot']['figformat']
+                        fig.savefig(figfile, format=cfg['plot']['figformat'])
+                        plt.close()
 
     if len(data.keys())>1:
         tavgs = cfg['timeaverage']
         tavgs.append('ORG')
         for var in variables:
-            for tavg in tavgs:
-                fig, ax = plt.subplots(figsize=(6,3), layout='constrained')
-                if tavg == 'Y': tavg='YEARLY'
-                elif tavg == 'M': tavg='MONTHLY'
-                for modelname in data:
-                    data[modelname]['1D'][tavg][var].plot(label=modelname)
-                ax.set_ylabel(ylabel[var][1])
-                ax.legend()
-                namefig = '_'.join(['TS', cfg['lake'], '_'.join([*data.keys()]), var, tavg])
-                fig.savefig(os.path.join(path_figures, namefig) + '.' + cfg['plot']['figformat'], format=cfg['plot']['figformat'])
-                plt.close()
+            if 'O' not in var.split('_'):
+                for tavg in tavgs:
+                    fig, ax = plt.subplots(figsize=(6,3), layout='constrained')
+                    if tavg == 'Y': tavg='YEARLY'
+                    elif tavg == 'M': tavg='MONTHLY'
+                    for modelname in data:
+                        data[modelname]['1D'][tavg][var].plot(label=modelname)
+                    ax.set_ylabel(ylabel[var][1])
+                    ax.legend()
+                    namefig = '_'.join(['TS', cfg['lake'], '_'.join([*data.keys()]), var, tavg])
+                    fig.savefig(os.path.join(path_figures, namefig) + '.' + cfg['plot']['figformat'], format=cfg['plot']['figformat'])
+                    plt.close()
