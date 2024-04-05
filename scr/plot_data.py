@@ -6,6 +6,58 @@ from scr.read_data import read_varconfig, read_varconfig
 
 plt.style.use('~/.config/matplotlib/aslo-paper.mplstyle')
 
+def plot_data(cfg, obsdata, modeldata):
+
+    if modeldata:
+        plot_model(cfg, modeldata)
+    if obsdata:
+        plot_obsdata(cfg, obsdata)
+
+def plot_obsdata(cfg, obsdata):
+    """TODO: Docstring for plot_obsdata.
+
+    Parameters
+    ----------
+    cfg : TODO
+    obsdata : TODO
+
+    Returns
+    -------
+    TODO
+
+    """
+    if cfg['makeplots']:
+        save = cfg['plot']['save']
+        path_figures = os.path.join(cfg['path_figures'], cfg['lake'])
+        if not os.path.exists(path_figures):
+            os.makedirs(path_figures)
+        for plottype in cfg['plot']:
+            if plottype == 'colormesh':
+                if cfg['plot']['colormesh']:
+                    plot_colormesh(cfg, obsdata, cfg['plot'][plottype], path_figures, save)
+            if plottype == 'timeseries':
+                if cfg['plot']['timeseries']:
+                    plot_obstimeserie(cfg, obsdata, cfg['plot']['timeseries'], path_figures, save)
+        if not save:
+            plt.show()
+
+def plot_obstimeserie(cfg, data, variables, path_figures, save=True):
+
+    ylabel = read_varconfig('utils/config_varfile.yml')
+    for tavg in data['1D']:
+        for var in data['1D'][tavg]:
+            dataplot = data['1D'][tavg][var]
+            fig = make_ts(cfg, dataplot, var, '', ylabel, tavg, 'OBS')
+            path_figmodel = os.path.join(path_figures, 'OBSERVATIONS')
+            if not os.path.exists(path_figmodel):
+                os.makedirs(path_figmodel)
+            namefig = '_'.join(['TS', cfg['lake'], tavg, var])
+            if save:
+                figfile = os.path.join(path_figmodel, namefig) + '.' + cfg['plot']['figformat']
+                fig.savefig(figfile, format=cfg['plot']['figformat'])
+                plt.close()
+
+
 def plot_model(cfg, modeldata):
     if cfg['makeplots']:
         save = cfg['plot']['save']
@@ -19,10 +71,9 @@ def plot_model(cfg, modeldata):
                     plot_colormesh(cfg, modeldata, cfg['plot'][plottype], path_figures, save)
             if plottype == 'timeseries':
                 if cfg['plot']['timeseries']:
-                    plot_timeserie(cfg, modeldata, cfg['plot']['timeseries'], path_figures, save)
+                    plot_modeltimeserie(cfg, modeldata, cfg['plot']['timeseries'], path_figures, save)
         if not save:
             plt.show()
-
 
 
 def plot_colormesh(cfg, modeldata, plotvars, path_figures, save=True):
@@ -53,14 +104,29 @@ def ts_colormesh(modeldata, modelname, varname, cblabel, cmap='viridis', vmax=No
 
     return fig
 
-def plot_timeserie(cfg, data, variables, path_figures, save=True):
+def make_ts(cfg, data, var, label, ylabel, tavg, td='MODEL'):
+    fig, ax = plt.subplots(figsize=(6,3), layout='constrained')
+    ax.set_title(tavg)
+    mk = '.'
+    ln = '-'
+    if tavg != 'ORG':
+        mk = 'o'
+    if td == 'OBS':
+        ln = '--'
+    data.plot(ax=ax, label=label, marker=mk, linestyle=ln)
+    if cfg['date_periods']:
+        ax.axvline(x=cfg['date_periods'][0], color='r', linestyle='-.')
+        ax.axvline(x=cfg['date_periods'][1], color='r', linestyle='-.')
+    ax.set_ylabel(ylabel[var][1])
+    return fig
+
+def plot_modeltimeserie(cfg, data, variables, path_figures, save=True):
     ylabel = read_varconfig('utils/config_varfile.yml')
     for var in variables:
         for modelname in data:
             for tavg in data[modelname]['1D']:
-                fig, ax = plt.subplots(figsize=(6,3), layout='constrained')
-                data[modelname]['1D'][tavg][var].plot(ax=ax, label=modelname)
-                ax.set_ylabel(ylabel[var][1])
+                dataplot = data[modelname]['1D'][tavg][var]
+                fig = make_ts(cfg, dataplot, var, modelname, ylabel, tavg)
                 path_figmodel = os.path.join(path_figures, modelname)
                 if not os.path.exists(path_figmodel):
                     os.makedirs(path_figmodel)
@@ -68,9 +134,9 @@ def plot_timeserie(cfg, data, variables, path_figures, save=True):
                 if save:
                     figfile = os.path.join(path_figmodel, namefig) + '.' + cfg['plot']['figformat']
                     fig.savefig(figfile, format=cfg['plot']['figformat'])
-                plt.close()
+                    plt.close()
 
-    if len(data.keys())>1: #plot different models together, missing TAVG
+    if len(data.keys())>1:
         tavgs = cfg['timeaverage']
         tavgs.append('ORG')
         for var in variables:

@@ -6,6 +6,14 @@ import scr.functions as fn
 from scr.read_data import read_varconfig
 
 
+def process_data(cfg, obsdata, modeldata):
+
+    if obsdata:
+        obsdata = process_obsdata(cfg, obsdata)
+    if modeldata:
+        modeldata = process_model(cfg, modeldata)
+    return obsdata, modeldata
+
 def processing_meteo(data, meta):
 
     # Calculates wind V and U
@@ -28,19 +36,25 @@ def process_obsdata(cfg, obsdata):
         data = {}
         if '1D' in obsdata:
             data = {'1D': {}}
+            interp = obsdata['1D'].resample('D').interpolate(method='linear')
         if '2D' in obsdata:
             data = {'2D': {}}
         for time_avg in cfg['timeaverage']:
             if '1D' in obsdata:
+                data['1D'].update({'ORG': obsdata['1D']})
                 if time_avg == 'M':
-                    avgdata = obsdata['1D'].resample('ME').mean()
+                    avgdata = interp.resample('ME').mean()
                     data['1D'].update({'MONTHLY': avgdata})
                 if time_avg == 'Y':
-                    avgdata = obsdata['1D'].resample('YE').mean()
-                    data['1D'].update({'MONTHLY': avgdata})
+                    avgdata = interp.resample('YE').mean()
+                    data['1D'].update({'YEARLY': avgdata})
                 if time_avg == 'YS':
-                    avgdata = obsdata['1D'].resample('YE').sum()
-                    data['1D'].update({'MONTHLY': avgdata})
+                    mavgdata = interp.resample('ME').mean()
+                    avgdata = mavgdata.resample('YE').sum()
+                    data['1D'].update({'YEARLY_S': avgdata})
+        return data
+    else:
+        return obsdata
 
 
 def process_model(cfg, modeldata):

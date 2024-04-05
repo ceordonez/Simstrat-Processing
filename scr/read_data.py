@@ -24,27 +24,35 @@ def read_obs(cfg):
 
     """
     data = {}
+
+    # Adding 2D variables (not finished)
     if 'O_TEMPP' in cfg['var']:
         data_tp = pd.read_csv(os.path.join(path, cfg['file_wtempprof']))
         if 'date_complete' in data_tp.columns:
             data_tp.rename(columns={'date_complete': 'Datetime'}, inplace=True)
         data['Datetime'] = pd.to_datetime(data['Datetime'])
         data.update({'2D': {'O_TEMPP': data_tp}})
-    
+
+    # Adding 1D variables
     if 'O_TEMP0' in cfg['var']:
         data_t0 = read_watertemp0(cfg)
-        if '1D' not in data:
-            data_t0 = {'O_TEMP0': data_t0}
-            data.update({'1D': data_t0})
-        else:
-            data['1D']['O_TEMP0'] = data_t0
+        data = add1ddata(data, data_t0)
     if 'O_SD' in cfg['var']:
         data_sd = read_secchi(cfg)
-        if '1D' not in data:
-            data_sd = {'O_SD': data_sd}
-            data.update({'1D': data_sd})
-        else:
-            data['1D']['O_SD'] = data_sd
+        data = add1ddata(data, data_sd)
+
+    # Average duplicated measurements
+    if '1D' in data:
+        if len(data['1D'].duplicated()) > 0:
+            data['1D'] = data['1D'].groupby(data['1D'].index).mean()
+        data['1D'].sort_index(inplace=True)
+    return data
+
+def add1ddata(data, datavar):
+    if '1D' not in data:
+        data.update({'1D': datavar})
+    else:
+        data['1D'] = pd.merge(data['1D'], datavar, how='outer', left_index=True, right_index=True)
     return data
 
 def read_watertemp0(cfg):
@@ -54,6 +62,8 @@ def read_watertemp0(cfg):
     del data['depth']
     if 'date_complete' in data.columns:
         data.rename(columns={'date_complete': 'Datetime'}, inplace=True)
+    if 'temperature' in data.columns:
+        data.rename(columns={'temperature': 'O_TEMP0'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
     data.sort_values(by='Datetime', inplace=True)
     data.set_index('Datetime', inplace=True)
@@ -64,15 +74,19 @@ def read_secchi(cfg):
     data = pd.read_excel(os.path.join(path, cfg['file_secchi']), usecols=[3, 7])
     if 'date_complete' in data.columns:
         data.rename(columns={'date_complete': 'Datetime'}, inplace=True)
+    if 'Secchi' in data.columns:
+        data.rename(columns={'Secchi': 'O_SD'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data['Datetime'])
     data.sort_values(by='Datetime', inplace=True)
     data.set_index('Datetime', inplace=True)
     return data
 
 def read_model(cfg):
+
     path = cfg['path_models']
     lakename = cfg['lake']
     varfile = read_varconfig('utils/config_varfile.yml')
+
     data = {}
 
     for modelname in cfg['model_names']:
@@ -114,6 +128,7 @@ def read_model(cfg):
                 datamodel['2D'][var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]
         #datamodel['1D'].sort_index(inplace=True)
         data[modelname] = datamodel
+
     return data
 
 def read_meteo(path, filename, date_interval):

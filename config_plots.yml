@@ -4,22 +4,23 @@ path_obs: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/R
 path_models: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
 path_figures: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/FIGURES'
 path_outfiles: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/OUTFILES'
-model_names: ['EAWAG_INPUTS_BASE', 'EAWAG_INPUTS_BASE_NOBRIGHT', 'EAWAG_INPUTS_BASE_LIGHTP0', 'EAWAG_INPUTS_BASE_LIGHTP1', 'EAWAG_INPUTS_BASE_LIGHTP2']
+model_names: ['EAWAG_INPUTS_BASE', 'EIB_LIGHT_KCPD_P2', 'EIB_LIGHT_KCPD_P1', 'EIB_LIGHT_KCPD_P0']
   #model_names: ['EAWAG_RESULTS']
-time_span: ['01-01-1981', '31-12-2021 00:00']
+time_span: ['01-01-1985', '31-12-2021 00:00']
+
 file_wtempprof: 'Temperature_bafu85_98probes20.csv'
 file_secchi: 'secchi8519.xlsx'
-
 writedata: True
-timeaverage: ['M', 'Y']
+timeaverage: ['Y', 'M', 'YS']
 
+date_periods: ['1996', '2008']
 makeplots: True
 
 plot:
   colormesh: []
   timeseries: ['O_TEMP0', 'O_SD']
   figformat: 'png'
-  save: True
+  save: False
 
 
 
