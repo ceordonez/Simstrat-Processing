@@ -20,9 +20,9 @@ def N2(data):
     alldata= []
     for date in data.index.unique():
         data_p = data.loc[date]
+        data_p = data_p.sort_values('Depth_m')
         data_p['rho'] = waterDensity(data_p.O_TEMPP)
-        Z = data_p.Depth_m
-        data_p['dpdz'] = filter_dxdz(data_p.rho, Z) # Savinsky Golay filter
+        data_p['dpdz'] = filter_dxdz(data_p.rho, data_p.Depth_m) # Savinsky Golay filter
         data_p['N2'] = (9.8/998.*data_p.dpdz)
         alldata.append(data_p)
     alldata = pd.concat(alldata)
@@ -31,7 +31,8 @@ def N2(data):
 
 def filter_dxdz(x, Z):
     dxdz = np.gradient(x, Z)
-    dxdz = signal.savgol_filter(dxdz, 9, 2)
+    #dxdz = signal.savgol_filter(dxdz, 9, 2)
+    #__import__('pdb').set_trace()
     return dxdz
 
 def clearSkySolRad(time, pair, vap, lat):

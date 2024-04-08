@@ -40,8 +40,42 @@ def plot_obsdata(cfg, obsdata):
             if plottype == 'timeseries':
                 if cfg['plot']['timeseries']:
                     plot_obstimeserie(cfg, obsdata, cfg['plot']['timeseries'], path_figures, save)
+            if plottype == 'profiles':
+                if cfg['plot']['profiles']:
+                    plot_profiles(cfg, obsdata, cfg['plot']['profiles'], path_figures, save)
         if not save:
             plt.show()
+
+def plot_profiles(cfg, data, varnames, path, save):
+    for tavg in data['2D']:
+        for date in data['2D'][tavg].index.unique():
+            for varname in data['2D'][tavg].columns:
+                if varname != 'Depth_m':
+                    logging.info('Plotting Profiles for: %s %s', varname, date.strftime('%d-%m-%Y'))
+                    datap = data['2D'][tavg].loc[date]
+                    fig = mk_profile1d(datap[varname], datap.Depth_m, '', date.strftime('%d-%m-%Y'), varname)
+                    namefig = '_'.join(['WP', cfg['lake'], tavg, varname, date.strftime('%Y%m%d')])
+                    savefigure(cfg, path, fig, namefig, 'OBSERVATIONS/PROFILES', save)
+
+
+def mk_profile1d(data_x, data_y, label, date, var):
+    xlabel = read_varconfig('utils/config_varfile.yml')
+    fig, ax = plt.subplots(1, 1, figsize=(2, 3))
+    ax.set_title(date)
+    ax.invert_yaxis()
+    ax.plot(data_x, data_y, label=label)
+    ax.set_xlabel(xlabel[var][1])
+    ax.set_ylabel('Depth (m)')
+    return fig
+
+def savefigure(cfg, path_figures, fig, namefig, folder, save):
+    path_figmodel = os.path.join(path_figures, folder)
+    if not os.path.exists(path_figmodel):
+        os.makedirs(path_figmodel)
+    if save:
+        figfile = os.path.join(path_figmodel, namefig) + '.' + cfg['plot']['figformat']
+        fig.savefig(figfile, format=cfg['plot']['figformat'])
+        plt.close()
 
 def plot_obstimeserie(cfg, data, variables, path_figures, save=True):
 
@@ -50,14 +84,8 @@ def plot_obstimeserie(cfg, data, variables, path_figures, save=True):
         for var in data['1D'][tavg]:
             dataplot = data['1D'][tavg][var]
             fig = make_ts(cfg, dataplot, var, '', ylabel, tavg, 'OBS')
-            path_figmodel = os.path.join(path_figures, 'OBSERVATIONS')
-            if not os.path.exists(path_figmodel):
-                os.makedirs(path_figmodel)
             namefig = '_'.join(['TS', cfg['lake'], tavg, var])
-            if save:
-                figfile = os.path.join(path_figmodel, namefig) + '.' + cfg['plot']['figformat']
-                fig.savefig(figfile, format=cfg['plot']['figformat'])
-                plt.close()
+            savefigure(cfg, path_figures, fig, namefig, 'OBSERVATIONS/TIME_SERIES', save)
 
 
 def plot_model(cfg, modeldata):

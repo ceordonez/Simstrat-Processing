@@ -32,16 +32,15 @@ def processing_hydro(data, meta):
     return []
 
 def process_obsdata(cfg, obsdata):
+    data = {}
+    if '1D' in obsdata:
+        data['1D'] = {'ORG': obsdata['1D']}
+        interp = obsdata['1D'].resample('D').interpolate(method='linear')
+    if '2D' in obsdata:
+        data['2D'] = {'ORG': obsdata['2D']}
     if cfg['timeaverage']:
-        data = {}
-        if '1D' in obsdata:
-            data = {'1D': {}}
-            interp = obsdata['1D'].resample('D').interpolate(method='linear')
-        if '2D' in obsdata:
-            data = {'2D': {}}
         for time_avg in cfg['timeaverage']:
             if '1D' in obsdata:
-                data['1D'].update({'ORG': obsdata['1D']})
                 if time_avg == 'M':
                     avgdata = interp.resample('ME').mean()
                     data['1D'].update({'MONTHLY': avgdata})
@@ -52,9 +51,9 @@ def process_obsdata(cfg, obsdata):
                     mavgdata = interp.resample('ME').mean()
                     avgdata = mavgdata.resample('YE').sum()
                     data['1D'].update({'YEARLY_S': avgdata})
-        return data
-    else:
-        return obsdata
+            if '2D' in obsdata:
+                __import__('pdb').set_trace()
+    return data
 
 
 def process_model(cfg, modeldata):
