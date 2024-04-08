@@ -1,5 +1,6 @@
 import logging
 
+from scipy import signal
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -12,6 +13,26 @@ def doy365(time):
     doy = np.array([t.dayofyear for t in time])
     doy[np.logical_and(leapYear,doy>59)] = doy[np.logical_and(leapYear,doy>59)]-1
     return (doy-1)
+
+def N2(data):
+    """ Bouyancy frequency"""
+    #rho, Temp, Z = filterProf(data, 0.25) # Mean every n meters
+    alldata= []
+    for date in data.index.unique():
+        data_p = data.loc[date]
+        data_p['rho'] = waterDensity(data_p.O_TEMPP)
+        Z = data_p.Depth_m
+        data_p['dpdz'] = filter_dxdz(data_p.rho, Z) # Savinsky Golay filter
+        data_p['N2'] = (9.8/998.*data_p.dpdz)
+        alldata.append(data_p)
+    alldata = pd.concat(alldata)
+    return alldata
+
+
+def filter_dxdz(x, Z):
+    dxdz = np.gradient(x, Z)
+    dxdz = signal.savgol_filter(dxdz, 9, 2)
+    return dxdz
 
 def clearSkySolRad(time, pair, vap, lat):
     if type(time) is not list: time=[time]

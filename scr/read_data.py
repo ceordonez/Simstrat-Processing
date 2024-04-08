@@ -7,7 +7,7 @@ import pandas as pd
 from pandas._config import using_copy_on_write
 import yaml
 
-from scr.functions import schmidtStability
+from scr.functions import schmidtStability, N2
 
 def read_obs(cfg):
     """Read observation data.
@@ -22,34 +22,44 @@ def read_obs(cfg):
 
     """
     data = {}
-    list_temp = ['O_TEMP0', 'O_TEMPB', 'O_N2', 'O_ST', 'O_HC']
+    list_temp1d = ['O_TEMP0', 'O_TEMPB', 'O_MN2', 'O_ST', 'O_HC']
+    list_temp2d = ['O_TEMPP', 'O_N2']
     # Adding 2D variables (not finished)
-    if 'O_TEMPP' in cfg['var']:
+    if any(map(lambda x: x in cfg['var'], list_temp2d)):
         data_tp = read_watertemp(cfg)
-        if 'date_complete' in data_tp.columns:
-            data_tp.rename(columns={'date_complete': 'Datetime'}, inplace=True)
-        data['Datetime'] = pd.to_datetime(data['Datetime'])
-        data.update({'2D': {'O_TEMPP': data_tp}})
+        if 'O_TEMPP' in cfg['var']:
+            logging.info('Reading O_TEMPP')
+            data = add2ddata(data, data_tp)
+        if 'O_N2' in cfg['var']:
+            logging.info('Reading O_N2')
+            data_n2 = N2(data_tp)
+            data = add2ddata(data, pd.DataFrame(data_n2[['N2', 'Depth_m']]))
 
     # Adding 1D variables
-    if any(map(lambda x: x in cfg['var'], list_temp)):
+    if any(map(lambda x: x in cfg['var'], list_temp1d)):
         data_t = read_watertemp(cfg)
 
         if 'O_TEMP0' in cfg['var']:
             logging.info('Reading O_TEMP0')
             data_t0 = data_t.loc[data_t.Depth_m == 0].copy()
             if 'temperature' in data_t.columns:
-                data_t0.rename(columns={'temperature': 'O_TEMP0'}, inplace=True)
+                data_t0.rename(columns={'O_TEMPP': 'O_TEMP0'}, inplace=True)
             del data_t0['Depth_m']
             data = add1ddata(data, data_t0)
 
         if 'O_ST' in cfg['var']:
             logging.info('Reading O_ST')
-            if 'temperature' in data_t.columns:
-                data_t.rename(columns={'temperature': 'O_TEMPP'}, inplace=True)
             area = read_bathymetry(cfg)
             data_st = schmidtStability(data_t, area, 'O_ST')
             data = add1ddata(data, data_st)
+
+        if 'O_MN2' in cfg['var']:
+            logging.info('Reading O_MN2')
+            data_n2 = N2(data_t)
+            data_mn2 = data_n2.groupby('Datetime')['N2'].max()
+            data_mn2 = pd.DataFrame(data_mn2)
+            data_mn2.rename(columns={'N2': 'O_MN2'}, inplace=True)
+            data = add1ddata(data, data_mn2)
 
     if 'O_SD' in cfg['var']:
         logging.info('Reading O_SD')
@@ -64,6 +74,24 @@ def read_obs(cfg):
     return data
 
 
+def filter_dxdz(x, Z):
+    dxdz = np.gradient(x, Z)
+    dxdz = signal.savgol_filter(dxdz, 9, 2)
+    return dxdz# }}}
+
+def add2ddata(data, datavar):
+    if '2D' not in data:
+        data.update({'2D': datavar})
+    else:
+        data['2D'].reset_index(inplace=True)
+        data['2D'].set_index(['Datetime', 'Depth_m'], inplace=True)
+        datavar.reset_index(inplace=True)
+        datavar.set_index(['Datetime', 'Depth_m'], inplace=True)
+        data['2D'] = pd.merge(data['2D'], datavar, how='outer', left_index=True, right_index=True)
+        data['2D'].reset_index(inplace=True)
+        data['2D'].set_index('Datetime', inplace=True)
+    return data
+
 def add1ddata(data, datavar):
     if '1D' not in data:
         data.update({'1D': datavar})
@@ -75,7 +103,7 @@ def read_watertemp(cfg):
     path = cfg['path_obs']
     data = pd.read_csv(os.path.join(path, cfg['file_wtempprof']), usecols=[2,4,5])
     if 'date_complete' in data.columns:
-        data.rename(columns={'date_complete': 'Datetime', 'depth': 'Depth_m'}, inplace=True)
+        data.rename(columns={'date_complete': 'Datetime', 'depth': 'Depth_m', 'temperature': 'O_TEMPP'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
     data.sort_values(by='Datetime', inplace=True)
     data.set_index('Datetime', inplace=True)

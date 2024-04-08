@@ -19,7 +19,7 @@ makeplots: True
 
 plot:
   colormesh: []
-  timeseries: ['O_ST']
+  timeseries: ['O_N2', 'O_MN2', 'O_TEMPP']
     #timeseries: ['HA', 'HW', 'HK', 'HV', 'O_TEMP0', 'O_SD', 'O_ST']
   profiles: []
   figformat: 'png'
