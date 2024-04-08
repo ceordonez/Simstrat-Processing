@@ -14,12 +14,14 @@ from scr.write_data import write_data
 
 def main():
 
+    #idata = read_inputs_meteo(cfg)
+
     logging_conf()
     logging.info('STEP 0: READING CONFIGURATION FILES')
     cfg = read_config('config_plots.yml')
-    #idata = read_inputs_meteo(cfg)
     logging.info('STEP 1: READING OBS FILES')
     obsdata = read_obs(cfg)
+    __import__('pdb').set_trace()
     logging.info('STEP 2: READING MODELS')
     modeldata = read_model(cfg)
     logging.info('STEP 3: PROCESSING')

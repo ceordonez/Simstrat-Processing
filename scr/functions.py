@@ -113,3 +113,36 @@ def cloudcover(data, lake):
     #data['Cloud cover [%]'] = [cc*0.01 if not np.isnan(cc) else 0.5 for cc in data['Cloud cover [%]']]
     #data['Cloud cover [-]'] = data.pop('Cloud cover [%]')
     return data
+
+def schmidtStability(data, bathy):
+
+    for date in data.index:
+        data_tp = data.loc[date]
+        if 'O_SAL' not in data_tp.columns:
+            S=[0]*len(data_tp)
+        __import__('pdb').set_trace()
+        data_sc = pd.merge(bathy, data_tp, how='inner',)
+        data['1D'] = pd.merge(data['1D'], datavar, how='outer', left_index=True, right_index=True)
+        zt = data_tp.Depth.values
+        zb = bathy.Depth_m
+        areas = bathy.Area_m2
+        T = data.O_TEMPP.values
+
+        z,areas,T,S = (np.abs(z),np.array(areas),np.array(T),np.array(S))
+        rho = waterDensity(T,S)
+        volume = sum(midValue(areas)*np.abs(np.diff(z))) #Lake volume from bathymetry [m3]
+        zv = 1/volume*sum(midValue(z*areas)*np.abs(np.diff(z))) #Centre of volume [m]
+        St = 9.81/max(areas)*sum(midValue((z-zv)*rho*areas)*np.abs(np.diff(z))) #Schmidt stability [J/m^2] (e.g. Kirillin and Shatwell 2016)
+        if St!=0: St=np.round(St,3-int(np.log10(np.abs(St)))) #Round to 4 significant figures
+    return St
+
+def waterDensity(T,S=None):
+    if S is None: S=[0]*len(T)
+    T,S = (np.array(T),np.array(S))
+    rho = 1000*(0.9998395+T*(6.7914e-5+T*(-9.0894e-6+T*(1.0171e-7+T*(-1.2846e-9+T*(1.1592e-11+T*(-5.0125e-14))))))+(8.181e-4+T*(-3.85e-6+T*(4.96e-8)))*S)#Density [kg/m3]
+    return list(rho)
+
+def midValue(vec):
+    mid = (np.array(vec)[:-1]+np.array(vec)[1:])/2
+    if type(vec) is list: mid = list(mid)
+    return mid

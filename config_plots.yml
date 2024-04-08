@@ -9,6 +9,8 @@ time_span: ['01-01-1985', '31-12-2021 00:00']
 
 file_wtempprof: 'Temperature_bafu85_98probes20.csv'
 file_secchi: 'secchi8519.xlsx'
+file_bathymetry: 'Bathymetry.dat'
+
 writedata: True
 timeaverage: ['Y', 'M']
 
@@ -17,7 +19,8 @@ makeplots: True
 
 plot:
   colormesh: []
-  timeseries: ['HA', 'HW', 'HK', 'HV', 'O_TEMP0', 'O_SD']
+  timeseries: ['HA', 'HW', 'HK', 'HV', 'O_TEMP0', 'O_SD', 'O_SC']
+  profiles: []
   figformat: 'png'
   save: True
 

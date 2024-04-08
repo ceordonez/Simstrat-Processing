@@ -6,10 +6,7 @@ import pandas as pd
 from pandas._config import using_copy_on_write
 import yaml
 
-
-def read_data(cfg):
-    modeldata = read_model(cfg)
-    return modeldata
+from scr.functions import schmidtStability
 
 def read_obs(cfg):
     """Read observation data.
@@ -24,19 +21,30 @@ def read_obs(cfg):
 
     """
     data = {}
-
+    list_temp = ['O_TEMP0', 'O_TEMPB', 'O_N2', 'O_SC', 'O_HC']
     # Adding 2D variables (not finished)
     if 'O_TEMPP' in cfg['var']:
-        data_tp = pd.read_csv(os.path.join(path, cfg['file_wtempprof']))
+        data_tp = read_watertemp(cfg)
         if 'date_complete' in data_tp.columns:
             data_tp.rename(columns={'date_complete': 'Datetime'}, inplace=True)
         data['Datetime'] = pd.to_datetime(data['Datetime'])
         data.update({'2D': {'O_TEMPP': data_tp}})
 
     # Adding 1D variables
-    if 'O_TEMP0' in cfg['var']:
-        data_t0 = read_watertemp0(cfg)
-        data = add1ddata(data, data_t0)
+    if any(map(lambda x: x in cfg['var'], list_temp)):
+        data_t = read_watertemp(cfg)
+        if 'O_TEMP0' in cfg['var']:
+            if 'temperature' in data_t.columns:
+                data_t.rename(columns={'temperature': 'O_TEMP0'}, inplace=True)
+            data_t0 = data_t.loc[data_t.depth == 0]
+            del data_t0['depth']
+            data = add1ddata(data, data_t0)
+        if 'O_SC' in cfg['var']:
+            if 'temperature' in data_t.columns:
+                data_t.rename(columns={'temperature': 'O_TEMPP'}, inplace=True)
+            area = read_bathymetry(cfg)
+            data_sc = schmidtStability(data_t, area)
+
     if 'O_SD' in cfg['var']:
         data_sd = read_secchi(cfg)
         data = add1ddata(data, data_sd)
@@ -48,6 +56,7 @@ def read_obs(cfg):
         data['1D'].sort_index(inplace=True)
     return data
 
+
 def add1ddata(data, datavar):
     if '1D' not in data:
         data.update({'1D': datavar})
@@ -55,15 +64,11 @@ def add1ddata(data, datavar):
         data['1D'] = pd.merge(data['1D'], datavar, how='outer', left_index=True, right_index=True)
     return data
 
-def read_watertemp0(cfg):
+def read_watertemp(cfg):
     path = cfg['path_obs']
     data = pd.read_csv(os.path.join(path, cfg['file_wtempprof']), usecols=[2,4,5])
-    data = data.loc[data.depth == 0]
-    del data['depth']
     if 'date_complete' in data.columns:
         data.rename(columns={'date_complete': 'Datetime'}, inplace=True)
-    if 'temperature' in data.columns:
-        data.rename(columns={'temperature': 'O_TEMP0'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
     data.sort_values(by='Datetime', inplace=True)
     data.set_index('Datetime', inplace=True)
@@ -229,4 +234,10 @@ def read_absorption(cfg, filename):
     data= pd.read_csv(filename, sep='\s+', skiprows=3, names=['Datetime', 'I_KL'])
     data['Datetime'] = pd.to_datetime(data.Datetime, origin=refyear, unit='D')
     data= data.set_index('Datetime')
+    return data
+
+def read_bathymetry(cfg):
+    path = cfg['path_obs']
+    data = pd.read_csv(os.path.join(path, cfg['file_bathymetry']), sep='\s+', skiprows=1, names=['Depth_m', 'Area_m2'])
+    data['Depth_m'] = -1*data['Depth_m']
     return data
