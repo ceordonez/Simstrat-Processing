@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -114,19 +116,20 @@ def cloudcover(data, lake):
     #data['Cloud cover [-]'] = data.pop('Cloud cover [%]')
     return data
 
-def schmidtStability(data, bathy):
-
-    for date in data.index:
+def schmidtStability(data, bathy, var):
+    dates = []
+    data_st = []
+    for date in data.index.unique():
         data_tp = data.loc[date]
+        data_tp.reset_index(inplace=True)
+        del data_tp['Datetime']
+        data_aux = pd.merge(bathy, data_tp, how='outer', on='Depth_m')
+        data_aux = data_aux.interpolate('linear')
+        z = data_aux.Depth_m
+        areas = data_aux.Area_m2
+        T = data_aux.O_TEMPP.values
         if 'O_SAL' not in data_tp.columns:
-            S=[0]*len(data_tp)
-        __import__('pdb').set_trace()
-        data_sc = pd.merge(bathy, data_tp, how='inner',)
-        data['1D'] = pd.merge(data['1D'], datavar, how='outer', left_index=True, right_index=True)
-        zt = data_tp.Depth.values
-        zb = bathy.Depth_m
-        areas = bathy.Area_m2
-        T = data.O_TEMPP.values
+            S=[0]*len(data_aux)
 
         z,areas,T,S = (np.abs(z),np.array(areas),np.array(T),np.array(S))
         rho = waterDensity(T,S)
@@ -134,7 +137,11 @@ def schmidtStability(data, bathy):
         zv = 1/volume*sum(midValue(z*areas)*np.abs(np.diff(z))) #Centre of volume [m]
         St = 9.81/max(areas)*sum(midValue((z-zv)*rho*areas)*np.abs(np.diff(z))) #Schmidt stability [J/m^2] (e.g. Kirillin and Shatwell 2016)
         if St!=0: St=np.round(St,3-int(np.log10(np.abs(St)))) #Round to 4 significant figures
-    return St
+        dates.append(date)
+        data_st.append(St)
+    alldata = pd.DataFrame({'Datetime': dates, var:data_st})
+    alldata.set_index('Datetime', inplace=True)
+    return alldata
 
 def waterDensity(T,S=None):
     if S is None: S=[0]*len(T)

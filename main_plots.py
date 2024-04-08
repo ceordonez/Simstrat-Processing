@@ -21,7 +21,6 @@ def main():
     cfg = read_config('config_plots.yml')
     logging.info('STEP 1: READING OBS FILES')
     obsdata = read_obs(cfg)
-    __import__('pdb').set_trace()
     logging.info('STEP 2: READING MODELS')
     modeldata = read_model(cfg)
     logging.info('STEP 3: PROCESSING')

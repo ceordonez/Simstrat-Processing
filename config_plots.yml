@@ -12,14 +12,15 @@ file_secchi: 'secchi8519.xlsx'
 file_bathymetry: 'Bathymetry.dat'
 
 writedata: True
-timeaverage: ['Y', 'M']
+timeaverage: ['Y', 'M', 'YS']
 
 date_periods: ['1996', '2008']
 makeplots: True
 
 plot:
   colormesh: []
-  timeseries: ['HA', 'HW', 'HK', 'HV', 'O_TEMP0', 'O_SD', 'O_SC']
+  timeseries: ['O_ST']
+    #timeseries: ['HA', 'HW', 'HK', 'HV', 'O_TEMP0', 'O_SD', 'O_ST']
   profiles: []
   figformat: 'png'
   save: True

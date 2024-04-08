@@ -1,4 +1,5 @@
 import codecs
+import logging
 import json
 import os
 
@@ -21,7 +22,7 @@ def read_obs(cfg):
 
     """
     data = {}
-    list_temp = ['O_TEMP0', 'O_TEMPB', 'O_N2', 'O_SC', 'O_HC']
+    list_temp = ['O_TEMP0', 'O_TEMPB', 'O_N2', 'O_ST', 'O_HC']
     # Adding 2D variables (not finished)
     if 'O_TEMPP' in cfg['var']:
         data_tp = read_watertemp(cfg)
@@ -33,19 +34,25 @@ def read_obs(cfg):
     # Adding 1D variables
     if any(map(lambda x: x in cfg['var'], list_temp)):
         data_t = read_watertemp(cfg)
+
         if 'O_TEMP0' in cfg['var']:
+            logging.info('Reading O_TEMP0')
+            data_t0 = data_t.loc[data_t.Depth_m == 0].copy()
             if 'temperature' in data_t.columns:
-                data_t.rename(columns={'temperature': 'O_TEMP0'}, inplace=True)
-            data_t0 = data_t.loc[data_t.depth == 0]
-            del data_t0['depth']
+                data_t0.rename(columns={'temperature': 'O_TEMP0'}, inplace=True)
+            del data_t0['Depth_m']
             data = add1ddata(data, data_t0)
-        if 'O_SC' in cfg['var']:
+
+        if 'O_ST' in cfg['var']:
+            logging.info('Reading O_ST')
             if 'temperature' in data_t.columns:
                 data_t.rename(columns={'temperature': 'O_TEMPP'}, inplace=True)
             area = read_bathymetry(cfg)
-            data_sc = schmidtStability(data_t, area)
+            data_st = schmidtStability(data_t, area, 'O_ST')
+            data = add1ddata(data, data_st)
 
     if 'O_SD' in cfg['var']:
+        logging.info('Reading O_SD')
         data_sd = read_secchi(cfg)
         data = add1ddata(data, data_sd)
 
@@ -68,7 +75,7 @@ def read_watertemp(cfg):
     path = cfg['path_obs']
     data = pd.read_csv(os.path.join(path, cfg['file_wtempprof']), usecols=[2,4,5])
     if 'date_complete' in data.columns:
-        data.rename(columns={'date_complete': 'Datetime'}, inplace=True)
+        data.rename(columns={'date_complete': 'Datetime', 'depth': 'Depth_m'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
     data.sort_values(by='Datetime', inplace=True)
     data.set_index('Datetime', inplace=True)
