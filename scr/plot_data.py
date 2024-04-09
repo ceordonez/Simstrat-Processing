@@ -49,22 +49,39 @@ def plot_obsdata(cfg, obsdata):
 def plot_profiles(cfg, data, varnames, path, save):
     for tavg in data['2D']:
         for date in data['2D'][tavg].index.unique():
-            for varname in data['2D'][tavg].columns:
-                if varname != 'Depth_m':
-                    logging.info('Plotting Profiles for: %s %s', varname, date.strftime('%d-%m-%Y'))
-                    datap = data['2D'][tavg].loc[date]
-                    fig = mk_profile1d(datap[varname], datap.Depth_m, '', date.strftime('%d-%m-%Y'), varname)
-                    namefig = '_'.join(['WP', cfg['lake'], tavg, varname, date.strftime('%Y%m%d')])
-                    savefigure(cfg, path, fig, namefig, 'OBSERVATIONS/PROFILES', save)
+            for varname in varnames:
+                logging.info('Plotting Profiles for: %s %s', varname, date.strftime('%d-%m-%Y'))
+                datap = data['2D'][tavg].loc[date]
+                fig = mk_profile1d(datap.loc[:, varname], datap.Depth_m, '', date.strftime('%d-%m-%Y'), varname)
+                if len(varname) > 1:
+                    varname = '_'.join(varname)
+                namefig = '_'.join(['WP', cfg['lake'], tavg, varname, date.strftime('%Y%m%d')])
+                savefigure(cfg, path, fig, namefig, 'OBSERVATIONS/PROFILES', save)
 
 
 def mk_profile1d(data_x, data_y, label, date, var):
+
     xlabel = read_varconfig('utils/config_varfile.yml')
-    fig, ax = plt.subplots(1, 1, figsize=(2, 3))
-    ax.set_title(date)
+
+    fig, ax = plt.subplots(1, 1, figsize=(3.2, 4.0))
+    cc = plt.rcParams['axes.prop_cycle'].by_key()['color']
     ax.invert_yaxis()
-    ax.plot(data_x, data_y, label=label)
-    ax.set_xlabel(xlabel[var][1])
+    ax.set_title('Date: ' + date)
+
+    if len(var) > 1:
+        twy = ax.twiny()
+        lnty, = twy.plot(data_x[var[1]], data_y, label=label, marker='.', color=cc[1])
+        twy.set_xlabel(xlabel[var[1]][1])
+        twy.spines.top.set_visible(True)
+        twy.xaxis.label.set_color(lnty.get_color())
+        twy.spines.top.set_color(lnty.get_color())
+        twy.tick_params(axis='x', colors=lnty.get_color(), which='both')
+        var1 = var[0]
+    else:
+        var1 = var
+
+    ax.plot(data_x[var1], data_y, label=label, marker='.', color=cc[0])
+    ax.set_xlabel(xlabel[var1][1])
     ax.set_ylabel('Depth (m)')
     return fig
 

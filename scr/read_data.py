@@ -1,13 +1,14 @@
 import codecs
-import logging
 import json
+import logging
 import os
 
 import pandas as pd
-from pandas._config import using_copy_on_write
 import yaml
+from pandas._config import using_copy_on_write
 
-from scr.functions import schmidtStability, N2
+from scr.functions import N2, flatten, schmidtStability
+
 
 def read_obs(cfg):
     """Read observation data.
@@ -33,7 +34,8 @@ def read_obs(cfg):
         if 'O_N2' in cfg['var']:
             logging.info('Reading O_N2')
             data_n2 = N2(data_tp)
-            data = add2ddata(data, pd.DataFrame(data_n2[['N2', 'Depth_m']]))
+            data = add2ddata(data, pd.DataFrame(data_n2[['O_N2', 'Depth_m']]))
+        data['2D'] = data['2D'].loc[cfg['time_span'][0]:cfg['time_span'][1]]
 
     # Adding 1D variables
     if any(map(lambda x: x in cfg['var'], list_temp1d)):
@@ -56,9 +58,9 @@ def read_obs(cfg):
         if 'O_MN2' in cfg['var']:
             logging.info('Reading O_MN2')
             data_n2 = N2(data_t)
-            data_mn2 = data_n2.groupby('Datetime')['N2'].max()
+            data_mn2 = data_n2.groupby('Datetime')['O_N2'].max()
             data_mn2 = pd.DataFrame(data_mn2)
-            data_mn2.rename(columns={'N2': 'O_MN2'}, inplace=True)
+            data_mn2.rename(columns={'O_N2': 'O_MN2'}, inplace=True)
             data = add1ddata(data, data_mn2)
 
     if 'O_SD' in cfg['var']:
@@ -71,6 +73,7 @@ def read_obs(cfg):
         if len(data['1D'].duplicated()) > 0:
             data['1D'] = data['1D'].groupby(data['1D'].index).mean()
         data['1D'].sort_index(inplace=True)
+        data['1D'] = data['1D'].loc[cfg['time_span'][0]:cfg['time_span'][1]]
     return data
 
 
@@ -196,9 +199,9 @@ def read_config(filename):
     for plottype in conf_file['plot']:
         if plottype not in ['figformat', 'save']:
             var.append(conf_file['plot'][plottype])
-    var = [x for xs in var for x in xs]
-    var = list(set(var))
-    conf_file['var'] = var
+    #var = [x for xs in var for x in xs]
+    #var = list(set(var))
+    conf_file['var'] = flatten(var)
     return conf_file
 
 def read_varconfig(filename):

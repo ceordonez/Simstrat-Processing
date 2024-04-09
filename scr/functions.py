@@ -1,10 +1,19 @@
 import logging
 
-from scipy import signal
+import calendar
+import collections
+#from scipy import signal
+from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
-import calendar
+
+#from collections.abc import Iterable
+
+def flatten(x):
+    if isinstance(x, collections.abc.Iterable) and not isinstance(x, str):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
 
 def doy365(time):
     if type(time)!=list: time=[time]
@@ -23,7 +32,7 @@ def N2(data):
         data_p = data_p.sort_values('Depth_m')
         data_p['rho'] = waterDensity(data_p.O_TEMPP)
         data_p['dpdz'] = filter_dxdz(data_p.rho, data_p.Depth_m) # Savinsky Golay filter
-        data_p['N2'] = (9.8/998.*data_p.dpdz)
+        data_p['O_N2'] = (9.8/998.*data_p.dpdz)
         alldata.append(data_p)
     alldata = pd.concat(alldata)
     return alldata
