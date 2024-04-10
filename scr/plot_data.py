@@ -84,13 +84,11 @@ def plot_profiles(cfg, obsdata, modeldata, path, save):
                         for i, modelname in enumerate(modeldata):
                             datemodeldata = modeldata[modelname]['2D'][tavg][modelvar].loc[date]
                             datemodp = pd.DataFrame({modelvar: datemodeldata.values}, index=datemodeldata.index.astype(float))
-                            plotdata = pd.merge(datemodp, dataobsp, how='outer', left_index=True, right_index=True)
                             ax.plot(datemodp, datemodp.index, label=modelname)
                         make_profile(ax, dataobsp, '', strdate, obsvar, 'mix')
                         ax.legend()
                         namefig = '_'.join(['WP', cfg['lake'], '_'.join([*modeldata.keys()]), tavg, '_'.join(varname), date.strftime('%Y%m%d')])
                         savefigure(cfg, path, fig, namefig, 'MODEL_OBS/PROFILES', save)
-                __import__('pdb').set_trace()
 
 def make_profile(ax, data, label, date, var, typ):
 
@@ -124,6 +122,7 @@ def make_profile(ax, data, label, date, var, typ):
             lnty, = twy.plot(data2, data2.index, label=label, marker='.', color=cc)
             twy.set_xlabel(xlabel[var[1]][1])
             twy.spines.top.set_visible(True)
+            twy.spines.right.set_visible(True)
             twy.xaxis.label.set_color(lnty.get_color())
             twy.spines.top.set_color(lnty.get_color())
             twy.tick_params(axis='x', colors=lnty.get_color(), which='both')
