@@ -24,8 +24,8 @@ WATH: ['WaterH.dat', 'Water depth (\si{\meter})', '1D']
 QVERT: ['Qvert.dat', 'Vertical advection (\si{\cubic\meter\per\second})']
 ESEI: ['Eseiche.dat', 'Total seiche energy (\si{\joule})', '1D']
 
-T0: ['T.dat', 'Surface temperature (\si{\degreeCelsius})', '1D']
-TB: ['T.dat', 'Bottom temperature (\si{\degreeCelsius})', '1D']
+TEMP0: ['T.dat', 'Surface temperature (\si{\degreeCelsius})', '1D']
+TEMPB: ['T.dat', 'Bottom temperature (\si{\degreeCelsius})', '1D']
 
 ## INPUTS VARIABLES
 I_KL: ['Absorption.dat', 'Light Absortion (\si{\per\meter})', '1D']

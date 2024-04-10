@@ -44,8 +44,7 @@ def read_obs(cfg):
         if 'O_TEMP0' in cfg['var']:
             logging.info('Reading O_TEMP0')
             data_t0 = data_t.loc[data_t.Depth_m == 0].copy()
-            if 'temperature' in data_t.columns:
-                data_t0.rename(columns={'O_TEMPP': 'O_TEMP0'}, inplace=True)
+            data_t0.rename(columns={'O_TEMPP': 'O_TEMP0'}, inplace=True)
             del data_t0['Depth_m']
             data = add1ddata(data, data_t0)
 
@@ -140,6 +139,7 @@ def read_model(cfg):
         var1d_first = True
         for var in cfg['var']:
             if 'O' not in var.split('_'):
+                logging.info('Reading %s from model %s', var, modelname)
                 varf = varfile[var][0]
                 if 'I' in var.split('_'):
                     filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
@@ -158,8 +158,14 @@ def read_model(cfg):
                     datafile = pd.read_csv(filename)
                 datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
                 datafile = datafile.set_index('Datetime')
-                if '-0.000' in datafile.columns:
-                    datafile.rename(columns={'-0.000':'0.000'}, inplace=True)
+                newcols = [str(abs(float(x))) for x in datafile.columns]
+                depth = [abs(float(x)) for x in datafile.columns]
+                datafile.columns = newcols
+                if var == 'TEMP0':
+                    datafile = pd.DataFrame(datafile.loc[:, '0.0'])
+                if var == 'TEMPB':
+                    bottom = str(max(depth))
+                    datafile = pd.DataFrame(datafile.loc[:, bottom])
                 if varfile[var][2] == '1D':
                     datafile.rename(columns={datafile.columns[0]:var}, inplace=True)
                     if var1d_first:

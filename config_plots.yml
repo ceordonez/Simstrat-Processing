@@ -4,7 +4,7 @@ path_obs: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/R
 path_models: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
 path_figures: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/FIGURES'
 path_outfiles: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/OUTFILES'
-model_names: ['EAWAG_INPUTS_BASE', 'EIB_LIGHT_KCPD_P2', 'EIB_LIGHT_KCPD_P1', 'EIB_LIGHT_KCPD_P0']
+model_names: ['EAWAG_INPUTS_BASE', 'EIB_LIGHT_KCPD_P2', 'EIB_LIGHT_KCPD_P1', 'EIB_LIGHT_KCPD_P0', 'EAWAG_INPUTS_BASE_NOBRIGHT']
   #time_span: ['01-01-1985', '31-12-2021 00:00']
 time_span: ['01-04-1986', '31-12-2021']
 
@@ -12,19 +12,16 @@ file_wtempprof: 'Temperature_bafu85_98probes20.csv'
 file_secchi: 'secchi8519.xlsx'
 file_bathymetry: 'Bathymetry.dat'
 
-writedata: True
-timeaverage: [] #'Y', 'M', 'YS']
-
+timeaverage: ['Y'] #'Y', 'M', 'YS']
 date_periods: ['1996', '2008']
-makeplots: True
 
+makeplots: True
 plot:
   colormesh: []
-  timeseries: [] #'O_MN2']
+  timeseries: [] #[['TEMP0', 'O_TEMP0'], 'TEMPB'] #'O_MN2']
     #timeseries: ['HA', 'HW', 'HK', 'HV', 'O_TEMP0', 'O_SD', 'O_ST']
-  profiles: [['O_TEMPP', 'O_N2']]
+  profiles: [['O_TEMPP', 'O_N2'], ['TEMP', 'O_TEMPP']]
   figformat: 'png'
   save: True
 
-
-
+writedata: True

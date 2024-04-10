@@ -52,7 +52,7 @@ def process_obsdata(cfg, obsdata):
                     avgdata = mavgdata.resample('YE').sum()
                     data['1D'].update({'YEARLY_S': avgdata})
             if '2D' in obsdata:
-                __import__('pdb').set_trace()
+                pass
     return data
 
 
@@ -73,12 +73,11 @@ def process_model(cfg, modeldata):
         data = {}
         for model in modeldata:
             if '1D' in modeldata[model]:
-                data.update({model: {'1D': {}}})
+                data.update({model: {'1D': {'ORG': modeldata[model]['1D']}}})
             if '2D' in modeldata[model]:
-                data.update({model: {'2D': {}}})
+                data.update({model: {'2D': {'ORG': modeldata[model]['2D']}}})
             for time_avg in cfg['timeaverage']:
                 if '1D' in modeldata[model]:
-                    data[model]['1D'].update({'ORG':modeldata[model]['1D']})
                     if time_avg == 'M':
                         avgdata = modeldata[model]['1D'].resample('ME').mean()
                         data[model]['1D'].update({'MONTHLY': avgdata})
@@ -86,14 +85,13 @@ def process_model(cfg, modeldata):
                         avgdata = modeldata[model]['1D'].resample('YE').mean()
                         data[model]['1D'].update({'YEARLY': avgdata})
                 if '2D' in modeldata[model]:
-                    for var in modeldata['2D']:
-                        data[model]['2D'].update({'ORG':modeldata[model]['2D']})
+                    for var in modeldata[model]['2D']:
                         if time_avg == 'M':
                             avgdata = modeldata[model]['2D'][var].resample('ME').mean()
-                            data[model]['2D'] = {'MONTHLY': {var: avgdata}}
+                            data[model]['2D'].update({'MONTHLY': {var: avgdata}})
                         if time_avg == 'Y':
                             avgdata = modeldata[model]['2D'][var].resample('YE').mean()
-                            data[model]['2D'] = {'YEARLY': {var: avgdata}}
+                            data[model]['2D'].update({'YEARLY': {var: avgdata}})
         return data
     else:
         return modeldata

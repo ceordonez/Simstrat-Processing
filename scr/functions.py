@@ -184,3 +184,10 @@ def midValue(vec):
     mid = (np.array(vec)[:-1]+np.array(vec)[1:])/2
     if type(vec) is list: mid = list(mid)
     return mid
+
+def changename_avg(tavg):
+    if tavg == 'M': tavg='MONTHLY'
+    elif tavg == 'Y': tavg='YEARLY'
+    elif tavg == 'YS': tavg='YEARLY_S'
+    return tavg
+
