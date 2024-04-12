@@ -1,7 +1,44 @@
-from operator import index
 import os
-
+import logging
 import pandas as pd
+
+def write_data(cfg, obsdata, modeldata):
+    """Write process data.
+
+    Parameters
+    ----------
+    cfg : TODO
+    obsdata : TODO
+    modeldata : TODO
+
+    Returns
+    -------
+    TODO
+
+    """
+
+    if cfg['writedata']:
+        write_modeldata(cfg, modeldata)
+
+def write_modeldata(cfg, modeldata):
+
+    for model in modeldata:
+        if '1D' in modeldata[model]:
+            logging.info('Writing model 1D data for model: %s', model)
+            for tavg in modeldata[model]['1D']:
+                if tavg != 'ORG':
+                    var = '_'.join(modeldata[model]['1D'][tavg].columns)
+                    filename = '_'.join([cfg['lake'],model,tavg, var])
+                    if not os.path.exists(cfg['path_outfiles']):
+                        os.makedirs(cfg['path_outfiles'])
+                    filename = os.path.join(cfg['path_outfiles'],filename +'.csv')
+                    modeldata[model]['1D'][tavg].reset_index(inplace=True)
+                    if cfg['appendw']:
+                        modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f', mode='a')
+                    else:
+                        modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
+
+
 
 def write_meteo(path, filename, data, basedate):
     basedate = pd.to_datetime(basedate)
@@ -30,27 +67,3 @@ def write_hydro(path, filename, data, basedate):
     #        fid.write('\n')
     #fid.close()
 
-def write_data(cfg, data):
-    """Write process data
-
-    Parameters
-    ----------
-    cfg : TODO
-    data : TODO
-
-    Returns
-    -------
-    TODO
-
-    """
-    if cfg['writedata']:
-        for model in data:
-            if '1D' in data[model]:
-                for tavg in data[model]['1D']:
-                    var = '_'.join(data[model]['1D'][tavg].columns)
-                    filename = '_'.join([cfg['lake'],model,tavg, var])
-                    if not os.path.exists(cfg['path_outfiles']):
-                        os.makedirs(cfg['path_outfiles'])
-                    filename = os.path.join(cfg['path_outfiles'],filename +'.csv')
-                    data[model]['1D'][tavg].reset_index(inplace=True)
-                    data[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')

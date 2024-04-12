@@ -7,7 +7,7 @@ import pandas as pd
 import yaml
 from pandas._config import using_copy_on_write
 
-from scr.functions import N2, flatten, schmidtStability
+from scr.functions import N2, flatten, schmidtStability, heatContent
 
 
 def read_obs(cfg):
@@ -48,10 +48,17 @@ def read_obs(cfg):
             del data_t0['Depth_m']
             data = add1ddata(data, data_t0)
 
+        if 'O_TEMPB' in cfg['var']:
+            logging.info('Reading O_TEMPB')
+            data_t0 = data_t.loc[data_t.Depth_m == data_t.Depth_m.max()].copy()
+            data_t0.rename(columns={'O_TEMPP': 'O_TEMPB'}, inplace=True)
+            del data_t0['Depth_m']
+            data = add1ddata(data, data_t0)
+
         if 'O_ST' in cfg['var']:
             logging.info('Reading O_ST')
             area = read_bathymetry(cfg)
-            data_st = schmidtStability(data_t, area, 'O_ST')
+            data_st = schmidtStability(data_t, area, 'O_TEMPP', 'O_ST')
             data = add1ddata(data, data_st)
 
         if 'O_MN2' in cfg['var']:
@@ -61,6 +68,12 @@ def read_obs(cfg):
             data_mn2 = pd.DataFrame(data_mn2)
             data_mn2.rename(columns={'O_N2': 'O_MN2'}, inplace=True)
             data = add1ddata(data, data_mn2)
+
+        if 'O_HC' in cfg['var']:
+            logging.info('Reading O_HC')
+            area = read_bathymetry(cfg)
+            data_st = heatContent(data_t, area, 'O_TEMPP', 'O_HC')
+            data = add1ddata(data, data_st)
 
     if 'O_SD' in cfg['var']:
         logging.info('Reading O_SD')
@@ -150,6 +163,10 @@ def read_model(cfg):
                             datafile = alldatafile.loc[:,['Datetime', 'Solar radiation [W/m^2]']]
                         if var == 'I_VAP':
                             datafile = alldatafile.loc[:,['Datetime', 'Vapour pressure [mbar]']]
+                    if (var == 'I_SD') and (modelname not in ['EAWAG_INPUTS_BASE', 'EAWAG_INPUTS_BASE_NOBRIGHT']):
+                        aux = filename.split('.')
+                        filename = '.'.join(['_'.join([aux[0], modelname[10:]]), aux[1]])
+                        datafile = pd.read_csv(filename, skiprows=4, sep=',', names=['Datetime',var])
                     else:
                         datafile = pd.read_csv(filename, skiprows=3, sep='\s+', names=['Datetime',var])
                 else:
@@ -158,14 +175,32 @@ def read_model(cfg):
                     datafile = pd.read_csv(filename)
                 datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
                 datafile = datafile.set_index('Datetime')
-                newcols = [str(abs(float(x))) for x in datafile.columns]
-                depth = [abs(float(x)) for x in datafile.columns]
-                datafile.columns = newcols
+                if len(datafile.columns) > 1:
+                    newcols = [str(abs(float(x))) for x in datafile.columns]
+                    depth = [abs(float(x)) for x in datafile.columns]
+                    datafile.columns = depth
                 if var == 'TEMP0':
-                    datafile = pd.DataFrame(datafile.loc[:, '0.0'])
-                if var == 'TEMPB':
-                    bottom = str(max(depth))
+                    datafile = pd.DataFrame(datafile.loc[:, 0.0])
+                elif var == 'TEMPB':
+                    bottom = max(depth)
                     datafile = pd.DataFrame(datafile.loc[:, bottom])
+                elif var == 'MN2':
+                    datafile = pd.DataFrame(datafile.max(axis=1))
+                elif var == 'I_SD':
+                    datafile = pd.DataFrame(1.7/datafile)
+                elif var == 'ST':
+                    area = read_bathymetry(cfg)
+                    datafile = datafile.resample('d').mean()
+                    datafile = datafile.stack().reset_index().set_index('Datetime')
+                    datafile.columns = ['Depth_m', 'TEMPP']
+                    datafile = schmidtStability(datafile, area, 'TEMPP', var)
+                elif var == 'HC':
+                    area = read_bathymetry(cfg)
+                    datafile = datafile.resample('d').mean()
+                    datafile = datafile.stack().reset_index().set_index('Datetime')
+                    datafile.columns = ['Depth_m', 'TEMPP']
+                    datafile = heatContent(datafile, area, 'TEMPP', var)
+
                 if varfile[var][2] == '1D':
                     datafile.rename(columns={datafile.columns[0]:var}, inplace=True)
                     if var1d_first:
@@ -173,12 +208,12 @@ def read_model(cfg):
                         var1d_first = False
                     else:
                         datamodel['1D'] = pd.concat([datamodel['1D'], datafile[cfg['time_span'][0]:cfg['time_span'][1]]], axis=1, join='outer')
-                if varfile[var][2] == '2D':
+                elif varfile[var][2] == '2D':
                     datamodel['2D'] = {}
                     datamodel['2D'][var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]
         #datamodel['1D'].sort_index(inplace=True)
         data[modelname] = datamodel
-
+        data[modelname]['1D'].sort_index(inplace=True)
     return data
 
 def read_meteo(path, filename, date_interval):

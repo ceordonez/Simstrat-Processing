@@ -12,16 +12,17 @@ file_wtempprof: 'Temperature_bafu85_98probes20.csv'
 file_secchi: 'secchi8519.xlsx'
 file_bathymetry: 'Bathymetry.dat'
 
-timeaverage: ['Y'] #'Y', 'M', 'YS']
+timeaverage: ['M', 'Y', 'YS'] #'Y', 'M', 'YS'] #'Y', 'M', 'YS']
 date_periods: ['1996', '2008']
 
 makeplots: True
 plot:
   colormesh: []
-  timeseries: [] #[['TEMP0', 'O_TEMP0'], 'TEMPB'] #'O_MN2']
+  timeseries: [['I_SD', 'O_SD'], 'HA', 'HW', 'HK', 'HV', ['ST', 'O_ST'], ['TEMPB', 'O_TEMPB'], ['HC', 'O_HC'],['TEMP0', 'O_TEMP0'], ['MN2', 'O_MN2'], 'O_SD']
     #timeseries: ['HA', 'HW', 'HK', 'HV', 'O_TEMP0', 'O_SD', 'O_ST']
-  profiles: [['O_TEMPP', 'O_N2'], ['TEMP', 'O_TEMPP']]
+  profiles: [] #['O_TEMPP', 'O_N2'], ['TEMP', 'O_TEMPP']]
   figformat: 'png'
   save: True
 
 writedata: True
+appendw: True

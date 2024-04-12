@@ -35,22 +35,14 @@ def process_obsdata(cfg, obsdata):
     data = {}
     if '1D' in obsdata:
         data['1D'] = {'ORG': obsdata['1D']}
-        interp = obsdata['1D'].resample('D').interpolate(method='linear')
+        #interp = obsdata['1D'].resample('D').interpolate(method='linear')
     if '2D' in obsdata:
         data['2D'] = {'ORG': obsdata['2D']}
     if cfg['timeaverage']:
         for time_avg in cfg['timeaverage']:
             if '1D' in obsdata:
-                if time_avg == 'M':
-                    avgdata = interp.resample('ME').mean()
-                    data['1D'].update({'MONTHLY': avgdata})
-                if time_avg == 'Y':
-                    avgdata = interp.resample('YE').mean()
-                    data['1D'].update({'YEARLY': avgdata})
-                if time_avg == 'YS':
-                    mavgdata = interp.resample('ME').mean()
-                    avgdata = mavgdata.resample('YE').sum()
-                    data['1D'].update({'YEARLY_S': avgdata})
+                indata = obsdata['1D']
+                data['1D'] = average1D(indata, data['1D'], time_avg)
             if '2D' in obsdata:
                 pass
     return data
@@ -69,21 +61,17 @@ def process_model(cfg, modeldata):
     TODO
 
     """
-    if cfg['timeaverage']:
-        data = {}
-        for model in modeldata:
-            if '1D' in modeldata[model]:
-                data.update({model: {'1D': {'ORG': modeldata[model]['1D']}}})
-            if '2D' in modeldata[model]:
-                data.update({model: {'2D': {'ORG': modeldata[model]['2D']}}})
+    data = {}
+    for model in modeldata:
+        if '1D' in modeldata[model]:
+            data.update({model: {'1D': {'ORG': modeldata[model]['1D']}}})
+        if '2D' in modeldata[model]:
+            data.update({model: {'2D': {'ORG': modeldata[model]['2D']}}})
+        if cfg['timeaverage']:
             for time_avg in cfg['timeaverage']:
                 if '1D' in modeldata[model]:
-                    if time_avg == 'M':
-                        avgdata = modeldata[model]['1D'].resample('ME').mean()
-                        data[model]['1D'].update({'MONTHLY': avgdata})
-                    if time_avg == 'Y':
-                        avgdata = modeldata[model]['1D'].resample('YE').mean()
-                        data[model]['1D'].update({'YEARLY': avgdata})
+                    indata = modeldata[model]['1D']
+                    data[model]['1D'] = average1D(indata, data[model]['1D'], time_avg)
                 if '2D' in modeldata[model]:
                     for var in modeldata[model]['2D']:
                         if time_avg == 'M':
@@ -92,9 +80,20 @@ def process_model(cfg, modeldata):
                         if time_avg == 'Y':
                             avgdata = modeldata[model]['2D'][var].resample('YE').mean()
                             data[model]['2D'].update({'YEARLY': {var: avgdata}})
-        return data
-    else:
-        return modeldata
+    return data
+
+def average1D(indata, outdata, time_avg):
+    if time_avg == 'M':
+        avgdata = indata.resample('ME').mean()
+        outdata.update({'MONTHLY': avgdata})
+    if time_avg == 'Y':
+        avgdata = indata.resample('YE').mean()
+        outdata.update({'YEARLY': avgdata})
+    if time_avg == 'YS':
+        mindata= indata.resample('ME').mean().interpolate()
+        avgdata = mindata.resample('YE').sum()
+        outdata.update({'YEARLY_S': avgdata})
+    return outdata
 
 def cond2sal(cond):
     K1 =  0.0120

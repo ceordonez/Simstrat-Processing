@@ -28,8 +28,7 @@ def main():
     logging.info('STEP 4: PLOTTING DATA')
     plot_data(cfg, obsdata, modeldata)
     logging.info('STEP 5: WRITING RESULTS')
-    __import__('pdb').set_trace()
-    write_data(cfg, modeldata)
+    write_data(cfg, obsdata, modeldata)
 
 if __name__ == "__main__":
     main()
