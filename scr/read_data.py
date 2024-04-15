@@ -213,7 +213,8 @@ def read_model(cfg):
                     datamodel['2D'][var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]
         #datamodel['1D'].sort_index(inplace=True)
         data[modelname] = datamodel
-        data[modelname]['1D'].sort_index(inplace=True)
+        if '1D' in data[modelname]:
+            data[modelname]['1D'].sort_index(inplace=True)
     return data
 
 def read_meteo(path, filename, date_interval):
@@ -240,6 +241,8 @@ def read_config(filename):
     for plottype in conf_file['plot']:
         if plottype not in ['figformat', 'save']:
             var.append(conf_file['plot'][plottype])
+
+    var.append(conf_file['stats']['vars'])
     #var = [x for xs in var for x in xs]
     #var = list(set(var))
     conf_file['var'] = flatten(var)

@@ -11,6 +11,7 @@ from scr.read_data import read_config, read_model, read_inputs_meteo, read_obs
 from scr.plot_data import plot_data
 from scr.processing_data import process_data
 from scr.write_data import write_data
+from scr.stats_data import stats_data
 
 def main():
 
@@ -27,7 +28,9 @@ def main():
     obsdata, modeldata = process_data(cfg, obsdata, modeldata)
     logging.info('STEP 4: PLOTTING DATA')
     plot_data(cfg, obsdata, modeldata)
-    logging.info('STEP 5: WRITING RESULTS')
+    logging.info('STEP 5: STATISTICS')
+    stats_data(cfg, obsdata, modeldata)
+    logging.info('STEP 6: WRITING RESULTS')
     write_data(cfg, obsdata, modeldata)
 
 if __name__ == "__main__":
