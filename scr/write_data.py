@@ -2,7 +2,7 @@ import os
 import logging
 import pandas as pd
 
-def write_data(cfg, obsdata, modeldata):
+def write_data(cfg, obsdata, modeldata, statdata):
     """Write process data.
 
     Parameters
@@ -19,6 +19,8 @@ def write_data(cfg, obsdata, modeldata):
 
     if cfg['writedata']:
         write_modeldata(cfg, modeldata)
+    if cfg['stats']['write']:
+        write_stats(cfg, statdata)
 
 def write_modeldata(cfg, modeldata):
 
@@ -38,6 +40,12 @@ def write_modeldata(cfg, modeldata):
                     else:
                         modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
 
+def write_stats(cfg, statdata):
+    if not os.path.exists(cfg['path_outfiles']):
+        os.makedirs(cfg['path_outfiles'])
+    filename = 'STATISTICS'
+    filename = os.path.join(cfg['path_outfiles'],filename +'.csv')
+    statdata.to_csv(filename, index=False, float_format='%.4f', mode='a')
 
 
 def write_meteo(path, filename, data, basedate):

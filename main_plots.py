@@ -29,9 +29,9 @@ def main():
     logging.info('STEP 4: PLOTTING DATA')
     plot_data(cfg, obsdata, modeldata)
     logging.info('STEP 5: STATISTICS')
-    stats_data(cfg, obsdata, modeldata)
+    statdata = stats_data(cfg, obsdata, modeldata)
     logging.info('STEP 6: WRITING RESULTS')
-    write_data(cfg, obsdata, modeldata)
+    write_data(cfg, obsdata, modeldata, statdata)
 
 if __name__ == "__main__":
     main()

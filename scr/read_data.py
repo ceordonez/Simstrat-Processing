@@ -43,7 +43,7 @@ def read_obs(cfg):
 
         if 'O_TEMP0' in cfg['var']:
             logging.info('Reading O_TEMP0')
-            data_t0 = data_t.loc[data_t.Depth_m == 0].copy()
+            data_t0 = data_t.loc[data_t.Depth_m == 1].copy()
             data_t0.rename(columns={'O_TEMPP': 'O_TEMP0'}, inplace=True)
             del data_t0['Depth_m']
             data = add1ddata(data, data_t0)
@@ -120,7 +120,7 @@ def read_watertemp(cfg):
     if 'date_complete' in data.columns:
         data.rename(columns={'date_complete': 'Datetime', 'depth': 'Depth_m', 'temperature': 'O_TEMPP'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
-    data.sort_values(by='Datetime', inplace=True)
+    data.sort_values(by=['Datetime', 'Depth_m'], inplace=True)
     data.set_index('Datetime', inplace=True)
     return data
 
@@ -157,18 +157,21 @@ def read_model(cfg):
                 if 'I' in var.split('_'):
                     filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
                     if varf == 'Forcing.dat':
+                        varf = cfg_sims['Input']['Forcing']
+                        filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
                         alldatafile = pd.read_csv(filename, sep='\s+')
                         alldatafile.rename(columns={'Time [d]':'Datetime'}, inplace=True)
                         if var == 'I_RAD':
                             datafile = alldatafile.loc[:,['Datetime', 'Solar radiation [W/m^2]']]
                         if var == 'I_VAP':
                             datafile = alldatafile.loc[:,['Datetime', 'Vapour pressure [mbar]']]
-                    if (var == 'I_SD') and (modelname not in ['EAWAG_INPUTS_BASE', 'EAWAG_INPUTS_BASE_NOBRIGHT']):
-                        aux = filename.split('.')
-                        filename = '.'.join(['_'.join([aux[0], modelname[10:]]), aux[1]])
-                        datafile = pd.read_csv(filename, skiprows=4, sep=',', names=['Datetime',var])
-                    else:
+                    if varf == 'Absorption.dat':
+                        varf = cfg_sims['Input']['Absorption']
+                        logging.info('Reading file: %s', varf)
+                        filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
                         datafile = pd.read_csv(filename, skiprows=3, sep='\s+', names=['Datetime',var])
+                        if all(datafile['I_SD'].isna()):
+                            datafile = pd.read_csv(filename, skiprows=3, sep=',', names=['Datetime',var])
                 else:
                     newfile = '_'.join([lakename, varf])
                     filename = os.path.join(path, lakename, modelname, newfile)
@@ -180,7 +183,7 @@ def read_model(cfg):
                     depth = [abs(float(x)) for x in datafile.columns]
                     datafile.columns = depth
                 if var == 'TEMP0':
-                    datafile = pd.DataFrame(datafile.loc[:, 0.0])
+                    datafile = pd.DataFrame(datafile.loc[:, 1.0])
                 elif var == 'TEMPB':
                     bottom = max(depth)
                     datafile = pd.DataFrame(datafile.loc[:, bottom])
@@ -245,7 +248,8 @@ def read_config(filename):
     var.append(conf_file['stats']['vars'])
     #var = [x for xs in var for x in xs]
     #var = list(set(var))
-    conf_file['var'] = flatten(var)
+    var = flatten(var)
+    conf_file['var'] = set(var)
     return conf_file
 
 def read_varconfig(filename):
