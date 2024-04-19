@@ -17,10 +17,37 @@ def write_data(cfg, obsdata, modeldata, statdata):
 
     """
 
-    if cfg['writedata']:
+    if cfg['write']['model']:
         write_modeldata(cfg, modeldata)
-    if cfg['stats']['write']:
+    if cfg['write']['stats']:
         write_stats(cfg, statdata)
+    if cfg['write']['obs']:
+        write_obsdata(cfg, obsdata)
+
+def write_obsdata(cfg, obsdata):
+    """TODO: Docstring for write_obsdata.
+
+    Parameters
+    ----------
+    arg1 : TODO
+
+    Returns
+    -------
+    TODO
+
+    """
+    if '1D' in obsdata:
+        for tavg in obsdata['1D']:
+            filename = '_'.join([cfg['lake'], 'OBS', '1D', tavg])
+            if not os.path.exists(cfg['path_outfiles']):
+                os.makedirs(cfg['path_outfiles'])
+            filename = os.path.join(cfg['path_outfiles'], filename +'.csv')
+            obsdata['1D'][tavg].reset_index(inplace=True)
+            if cfg['write']['append-o']:
+                obsdata['1D'][tavg].to_csv(filename, index=False, float_format='%.3f', mode='a')
+            else:
+                obsdata['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
+
 
 def write_modeldata(cfg, modeldata):
 
@@ -29,13 +56,12 @@ def write_modeldata(cfg, modeldata):
             logging.info('Writing model 1D data for model: %s', model)
             for tavg in modeldata[model]['1D']:
                 if tavg != 'ORG':
-                    var = '_'.join(modeldata[model]['1D'][tavg].columns)
-                    filename = '_'.join([cfg['lake'],model,tavg, var])
+                    filename = '_'.join([cfg['lake'], model, tavg])
                     if not os.path.exists(cfg['path_outfiles']):
                         os.makedirs(cfg['path_outfiles'])
-                    filename = os.path.join(cfg['path_outfiles'],filename +'.csv')
+                    filename = os.path.join(cfg['path_outfiles'], filename +'.csv')
                     modeldata[model]['1D'][tavg].reset_index(inplace=True)
-                    if cfg['appendw']:
+                    if cfg['write']['append-m']:
                         modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f', mode='a')
                     else:
                         modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
@@ -45,7 +71,10 @@ def write_stats(cfg, statdata):
         os.makedirs(cfg['path_outfiles'])
     filename = 'STATISTICS'
     filename = os.path.join(cfg['path_outfiles'],filename +'.csv')
-    statdata.to_csv(filename, index=False, float_format='%.4f', mode='a')
+    if cfg['write']['append-s']:
+        statdata.to_csv(filename, index=False, float_format='%.4f', mode='a')
+    else:
+        statdata.to_csv(filename, index=False, float_format='%.4f')
 
 
 def write_meteo(path, filename, data, basedate):

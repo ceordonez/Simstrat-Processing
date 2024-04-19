@@ -14,11 +14,15 @@ from scr.read_data import read_varconfig
 def stats_data(cfg, obsdata, modeldata):
 
     rmse = []
+    rmsec = []
+    rmsen = []
     r2 = []
     mape = []
     var = []
     models = []
     pvalue = []
+    bias = []
+    std = []
     for varname in cfg['stats']['vars']:
         confvar = read_varconfig('utils/config_varfile.yml')
         obsvar = [x for x in varname if 'O' in x.split('_')][0]
@@ -45,18 +49,19 @@ def stats_data(cfg, obsdata, modeldata):
                 y_mod = tsmodel.loc[dates, modelvar]
 
 
-            y_obs = flatten(y_obs)
-            y_mod = flatten(y_mod)
-            try:
-                rmse.append(root_mean_squared_error(y_obs, y_mod))
-            except Exception:
-                __import__('pdb').set_trace()
+            y_obs = np.array(flatten(y_obs))
+            y_mod = np.array(flatten(y_mod))
+            rmse.append(root_mean_squared_error(y_obs, y_mod))
             mape.append(mean_absolute_percentage_error(y_obs, y_mod))
+            rmsec.append(root_mean_squared_error(y_obs - np.mean(y_obs), y_mod - np.mean(y_mod)))
+            rmsen.append(root_mean_squared_error(y_obs, y_mod)/np.sqrt(1/len(y_mod)*np.sum(y_mod**2)))
             r2.append(r2_score(y_obs, y_mod))
             mod = sm.OLS(y_obs, y_mod).fit()
             pvalue.append(mod.pvalues[0])
+            bias.append(np.mean(y_obs) - np.mean(y_mod))
+            std.append(np.sqrt(np.sum((y_obs - np.mean(y_obs))**2)/ np.sum((y_mod - np.mean(y_mod))**2)))
             var.append(varname)
             models.append(modelname)
 
-    statres = pd.DataFrame({'Model':models, 'Variable':var, 'RMSE': rmse, 'MAPE': mape, 'R2': r2, 'p-value': pvalue})
+    statres = pd.DataFrame({'Model':models, 'Variable':var, 'RMSE': rmse, 'RMSEn': rmsen, 'RMSEc':rmsec, 'BIAS': bias, 'Std':std, 'MAPE': mape, 'R2': r2, 'p-value': pvalue})
     return statres

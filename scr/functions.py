@@ -7,8 +7,6 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 
-#from collections.abc import Iterable
-
 def flatten(x):
     if isinstance(x, collections.abc.Iterable) and not isinstance(x, str):
         return [a for i in x for a in flatten(i)]
@@ -30,12 +28,24 @@ def N2(data):
     for date in data.index.unique():
         data_p = data.loc[date]
         data_p = data_p.sort_values('Depth_m')
-        data_p['rho'] = waterDensity(data_p.O_TEMPP)
-        data_p['dpdz'] = filter_dxdz(data_p.rho, data_p.Depth_m) # Savinsky Golay filter
-        data_p['O_N2'] = (9.8/998.*data_p.dpdz)
-        alldata.append(data_p)
+        newdata_p = interp_temp(data_p, date)
+        newdata_p['rho'] = waterDensity(newdata_p.O_TEMPP)
+        newdata_p['dpdz'] = filter_dxdz(newdata_p.rho, newdata_p.Depth_m) # Savinsky Golay filter
+        newdata_p['O_N2'] = (9.8/998.*newdata_p.dpdz)
+        alldata.append(newdata_p)
     alldata = pd.concat(alldata)
     return alldata
+
+def interp_temp(data_p, date):
+
+    newz = pd.Series(np.arange(0, data_p.Depth_m.max()+1, 1), name='Depth_m')
+    newdata_p = pd.merge(data_p, newz, on='Depth_m', how='outer')
+    newdata_p = newdata_p.set_index('Depth_m')
+    newdata_p = newdata_p.interpolate(method='slinear')
+    newdata_p.reset_index(inplace=True)
+    newdata_p['Datetime'] = date
+    newdata_p.set_index('Datetime', inplace=True)
+    return newdata_p
 
 
 def filter_dxdz(x, Z):
@@ -155,6 +165,7 @@ def schmidtStability(data, bathy, vartemp, var):
         data_tp.reset_index(inplace=True)
         del data_tp['Datetime']
         data_aux = pd.merge(bathy, data_tp, how='outer', on='Depth_m')
+        data_aux = data_aux.interpolate('slinear')
         data_aux = data_aux.interpolate('linear')
         z = data_aux.Depth_m
         areas = data_aux.Area_m2
@@ -182,6 +193,7 @@ def heatContent(data, bathy, vartemp, var):
         data_tp.reset_index(inplace=True)
         del data_tp['Datetime']
         data_aux = pd.merge(bathy, data_tp, how='outer', on='Depth_m')
+        data_aux = data_aux.interpolate('slinear')
         data_aux = data_aux.interpolate('linear')
         z = data_aux.Depth_m
         areas = data_aux.Area_m2

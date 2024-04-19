@@ -7,7 +7,7 @@ import pandas as pd
 import yaml
 from pandas._config import using_copy_on_write
 
-from scr.functions import N2, flatten, schmidtStability, heatContent
+from scr.functions import N2, flatten, schmidtStability, heatContent, interp_temp
 
 
 def read_obs(cfg):
@@ -24,18 +24,28 @@ def read_obs(cfg):
     """
     data = {}
     list_temp1d = ['O_TEMP0', 'O_TEMPB', 'O_MN2', 'O_ST', 'O_HC']
-    list_temp2d = ['O_TEMPP', 'O_N2']
+    list_temp2d = ['O_TEMPP', 'O_N2', 'O_TEMPI']
     # Adding 2D variables (not finished)
     if any(map(lambda x: x in cfg['var'], list_temp2d)):
         data_tp = read_watertemp(cfg)
         if 'O_TEMPP' in cfg['var']:
             logging.info('Reading O_TEMPP')
-            data = add2ddata(data, data_tp)
+            data = add2ddata(data, data_tp.copy())
         if 'O_N2' in cfg['var']:
             logging.info('Reading O_N2')
-            data_n2 = N2(data_tp)
+            data_n2 = N2(data_tp.copy())
             data = add2ddata(data, pd.DataFrame(data_n2[['O_N2', 'Depth_m']]))
-        data['2D'] = data['2D'].loc[cfg['time_span'][0]:cfg['time_span'][1]]
+        if 'O_TEMPI' in cfg['var']:
+            logging.info('Reading O_TEMPI')
+            alldata= []
+            for date in data_tp.index.unique():
+                data_p = data_tp.loc[date]
+                data_p = data_p.sort_values('Depth_m')
+                newdata = interp_temp(data_p, date)
+                newdata.rename(columns={'O_TEMPP': 'O_TEMPI'}, inplace=True)
+                alldata.append(newdata)
+            alldata = pd.concat(alldata)
+            data = add2ddata(data, pd.DataFrame(alldata[['O_TEMPI', 'Depth_m']]))
 
     # Adding 1D variables
     if any(map(lambda x: x in cfg['var'], list_temp1d)):
@@ -89,11 +99,6 @@ def read_obs(cfg):
     return data
 
 
-def filter_dxdz(x, Z):
-    dxdz = np.gradient(x, Z)
-    dxdz = signal.savgol_filter(dxdz, 9, 2)
-    return dxdz# }}}
-
 def add2ddata(data, datavar):
     if '2D' not in data:
         data.update({'2D': datavar})
@@ -122,6 +127,7 @@ def read_watertemp(cfg):
     data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
     data.sort_values(by=['Datetime', 'Depth_m'], inplace=True)
     data.set_index('Datetime', inplace=True)
+    data = data.loc[cfg['time_span'][0]:cfg['time_span'][1]]
     return data
 
 def read_secchi(cfg):
@@ -134,6 +140,7 @@ def read_secchi(cfg):
     data['Datetime'] = pd.to_datetime(data['Datetime'])
     data.sort_values(by='Datetime', inplace=True)
     data.set_index('Datetime', inplace=True)
+    data = data.loc[cfg['time_span'][0]:cfg['time_span'][1]]
     return data
 
 def read_model(cfg):

@@ -28,9 +28,6 @@ def processing_meteo(data, meta):
     data = fn.cloudcover(data, meta)
     return data
 
-def processing_hydro(data, meta):
-    return []
-
 def process_obsdata(cfg, obsdata):
     data = {}
     if '1D' in obsdata:
@@ -89,10 +86,10 @@ def process_model(cfg, modeldata):
 
 def average1D(indata, outdata, time_avg):
     if time_avg == 'M':
-        avgdata = indata.resample('ME').mean()
+        avgdata = indata.resample('ME').agg(['mean', 'std'])
         outdata.update({'MONTHLY': avgdata})
     if time_avg == 'Y':
-        avgdata = indata.resample('YE').mean()
+        avgdata = indata.resample('YE').agg(['mean', 'std'])
         outdata.update({'YEARLY': avgdata})
     if time_avg == 'YS':
         mindata= indata.resample('ME').mean().interpolate()
