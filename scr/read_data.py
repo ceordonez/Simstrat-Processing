@@ -172,6 +172,8 @@ def read_model(cfg):
                             datafile = alldatafile.loc[:,['Datetime', 'Solar radiation [W/m^2]']]
                         if var == 'I_VAP':
                             datafile = alldatafile.loc[:,['Datetime', 'Vapour pressure [mbar]']]
+                        if var == 'I_ATEMP':
+                            datafile = alldatafile.loc[:,['Datetime', 'Temperature [degC]']]
                     if varf == 'Absorption.dat':
                         varf = cfg_sims['Input']['Absorption']
                         logging.info('Reading file: %s', varf)

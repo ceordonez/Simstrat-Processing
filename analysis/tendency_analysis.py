@@ -19,11 +19,13 @@ import write as wr
 plt.style.use('~/.config/matplotlib/aslo-paper.mplstyle')
 
 PATHOUT ='/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/INPUTS/HALLWIL/'
-NAMEVAR = 'Solar radiation [W/m^2]'
-VAR = 'I_RAD'
+#VAR = 'I_RAD'
+#NAMEVAR = 'Solar radiation [W/m^2]'
 #VAR = 'I_VAP'
 #NAMEVAR = 'Vapour pressure [mbar]'
-SEASON = 'AUTUMN'
+VAR = 'I_ATEMP'
+NAMEVAR = 'Temperature [degC]'
+SEASON = ''
 
 cfg = read_varconfig('../config_preprocessing.yml')
 
@@ -81,4 +83,4 @@ pl.plot_ts(inputdata, newdata, VAR, loc, respt, mu3, res1, res2, 1, SEASON, cfg)
 
 plt.show()
 
-wr.write_forcing(cfg, newdata, VAR, PATHOUT)
+#wr.write_forcing(cfg, newdata, VAR, PATHOUT)

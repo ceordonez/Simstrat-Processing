@@ -34,6 +34,7 @@ I_KL: ['Absorption.dat', 'Light Absortion (\si{\per\meter})', '1D']
 I_RAD: ['Forcing.dat', 'Solar Radiation (\si{\watt\per\square\meter\per\day})', '1D']
 I_VAP: ['Forcing.dat', 'Vapor Pressure (\si{\hecto\pascal})', '1D']
 I_SD: ['Absorption.dat', 'Secchi disk depth (\si{\meter})', '1D']
+I_ATEMP: ['Forcing.dat', 'Air Temperature (\si{\degreeCelsius})', '1D']
 
 O_TEMPP: ['', 'Temperature (\si{\degreeCelsius})', '2D']
 O_TEMPI: ['', 'Temperature (\si{\degreeCelsius})', '2D']

@@ -54,7 +54,10 @@ def plot_timeseries(cfg, obsdata, modeldata, path_figures, save=True):
 def plot_ts_allmodel(modeldata, tavg, var, ylabel, ax):
     for modelname in modeldata:
         modelplotdata = modeldata[modelname]['1D'][tavg][var].dropna()
-        modelplotdata['mean'].plot(label=modelname, ax=ax)
+        if tavg in ['MONTHLY', 'YEARLY']:
+            modelplotdata['mean'].plot(label=modelname, ax=ax)
+        else:
+            modelplotdata.plot(label=modelname, ax=ax)
     ax.set_ylabel(ylabel)
 
 def plot_per_model(cfg, modeldata, obsdata, tavg, var, ylabel, plotvar, path_figures, save):
