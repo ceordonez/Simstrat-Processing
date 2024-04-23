@@ -181,12 +181,15 @@ def read_model(cfg):
                         datafile = pd.read_csv(filename, skiprows=3, sep='\s+', names=['Datetime',var])
                         if all(datafile['I_SD'].isna()):
                             datafile = pd.read_csv(filename, skiprows=3, sep=',', names=['Datetime',var])
+                        #time = datafile.Datetime
+                        #datafile.loc[time != round(time), 'Datetime'] = round(time) + round(time - round(time)*24)/24
                 else:
                     newfile = '_'.join([lakename, varf])
                     filename = os.path.join(path, lakename, modelname, newfile)
                     datafile = pd.read_csv(filename)
                 datafile['Datetime'] = pd.to_datetime(datafile.Datetime, origin=refyear, unit='D')
                 datafile = datafile.set_index('Datetime')
+                datafile.index = datafile.index.round('h')
                 if len(datafile.columns) > 1:
                     newcols = [str(abs(float(x))) for x in datafile.columns]
                     depth = [abs(float(x)) for x in datafile.columns]
@@ -215,11 +218,13 @@ def read_model(cfg):
 
                 if varfile[var][2] == '1D':
                     datafile.rename(columns={datafile.columns[0]:var}, inplace=True)
+                    #datafile.sort_index(inplace = True)
                     if var1d_first:
                         datamodel['1D'] = pd.DataFrame(datafile[cfg['time_span'][0]:cfg['time_span'][1]])
                         var1d_first = False
                     else:
-                        datamodel['1D'] = pd.concat([datamodel['1D'], datafile[cfg['time_span'][0]:cfg['time_span'][1]]], axis=1, join='outer')
+                        #datamodel['1D'] = pd.concat([datamodel['1D'], datafile[cfg['time_span'][0]:cfg['time_span'][1]]], axis=1, join='outer')
+                        datamodel['1D'] = pd.merge(datamodel['1D'], datafile[cfg['time_span'][0]:cfg['time_span'][1]], how='outer', left_index=True, right_index=True)
                 elif varfile[var][2] == '2D':
                     datamodel['2D'] = {}
                     datamodel['2D'][var] = datafile[cfg['time_span'][0]:cfg['time_span'][1]]

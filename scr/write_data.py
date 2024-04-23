@@ -42,10 +42,19 @@ def write_obsdata(cfg, obsdata):
             if not os.path.exists(cfg['path_outfiles']):
                 os.makedirs(cfg['path_outfiles'])
             filename = os.path.join(cfg['path_outfiles'], filename +'.csv')
-            obsdata['1D'][tavg].reset_index(inplace=True)
             if cfg['write']['append-o']:
-                obsdata['1D'][tavg].to_csv(filename, index=False, float_format='%.3f', mode='a')
+                if os.path.exists(filename):
+                    olddata = pd.read_csv(filename, index_col=[0], parse_dates=[0])
+                    newdata = obsdata['1D'][tavg]
+                    mergedata = append1d_data(olddata, newdata)
+                    mergedata.to_csv(filename, index=False, float_format='%.3f')
+                else:
+                    logging.warning('No file for observation at % freq.', tavg)
+                    logging.warning('Creating new file')
+                    obsdata['1D'][tavg].reset_index(inplace=True)
+                    obsdata['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
             else:
+                obsdata['1D'][tavg].reset_index(inplace=True)
                 obsdata['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
 
 
@@ -55,16 +64,34 @@ def write_modeldata(cfg, modeldata):
         if '1D' in modeldata[model]:
             logging.info('Writing model 1D data for model: %s', model)
             for tavg in modeldata[model]['1D']:
-                if tavg != 'ORG':
-                    filename = '_'.join([cfg['lake'], model, tavg])
-                    if not os.path.exists(cfg['path_outfiles']):
-                        os.makedirs(cfg['path_outfiles'])
-                    filename = os.path.join(cfg['path_outfiles'], filename +'.csv')
-                    modeldata[model]['1D'][tavg].reset_index(inplace=True)
-                    if cfg['write']['append-m']:
-                        modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f', mode='a')
+                filename = '_'.join([cfg['lake'], model, tavg])
+                if not os.path.exists(cfg['path_outfiles']):
+                    os.makedirs(cfg['path_outfiles'])
+                filename = os.path.join(cfg['path_outfiles'], filename +'.csv')
+                if cfg['write']['append-m']:
+                    if os.path.exists(filename):
+                        olddata = pd.read_csv(filename, index_col=[0], parse_dates=[0])
+                        newdata = modeldata[model]['1D'][tavg]
+                        mergedata = append1d_data(olddata, newdata)
+                        mergedata.to_csv(filename, index=False, float_format='%.3f')
                     else:
+                        logging.warning('No file for model %s at % freq.', model, tavg)
+                        logging.warning('Creating new file')
+                        modeldata[model]['1D'][tavg].reset_index(inplace=True)
                         modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
+                else:
+                    modeldata[model]['1D'][tavg].reset_index(inplace=True)
+                    modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
+
+def append1d_data(olddata, newdata):
+    dupcol = olddata.columns.isin(newdata.columns)
+    if all(dupcol):
+        mergedata = newdata
+    else:
+        nolddata = olddata.drop(olddata.columns[dupcol], axis=1)
+        mergedata = pd.merge(nolddata, newdata, left_index=True, right_index=True, how='outer')
+    mergedata.reset_index(inplace=True)
+    return mergedata
 
 def write_stats(cfg, statdata):
     if not os.path.exists(cfg['path_outfiles']):

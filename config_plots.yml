@@ -15,21 +15,21 @@ file_bathymetry: 'Bathymetry.dat'
 timeaverage: ['M', 'Y', 'YS']
 date_periods: ['1996', '2008']
 
-makeplots: True
+makeplots: False
 plot:
   colormesh: []
     #timeseries: ['O_SD', 'O_ST', 'O_MN2', 'O_HC', 'O_TEMP0', 'O_TEMPB']
     #timeseries: [['I_SD', 'O_SD'], 'HA', 'HW', 'HK', 'HV', ['ST', 'O_ST'], ['TEMPB', 'O_TEMPB'], ['HC', 'O_HC'],['TEMP0', 'O_TEMP0'], ['MN2', 'O_MN2'], 'O_SD']
-  timeseries: [['HC', 'O_HC'], 'I_ATEMP']
+  timeseries: ['HA', 'I_SD', 'HW', 'TEMP0']
   profiles: [] #['O_TEMPI','O_TEMPP'], ['O_TEMPI', 'O_N2'], ['TEMP', 'O_TEMPP']]
   figformat: 'png'
   save: True
 
 write:
-  model: False
+  model: True
   obs: False
   stats: False
-  append-m: True
+  append-m: False
   append-o: True
   append-s: False
 
