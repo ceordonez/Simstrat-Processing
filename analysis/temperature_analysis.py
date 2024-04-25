@@ -30,16 +30,26 @@ VAR = 'I_ATEMP'
 NAMEVAR = 'Temperature [degC]'
 NORMPERIOD = 'all'
 SEASON = ''
+PERIOD = 12
 
 cfg = read_varconfig('../config_preprocessing.yml')
 
-inputdata = read_forcing(cfg, 'Forcing.dat')
+inputdata = read_forcing(cfg, 'Forcing_NoBright.dat')
 inputdata = inputdata.loc[:'31-12-2021']
 inputdata = inputdata.rename(columns={NAMEVAR:VAR})
 data = inputdata[VAR]
 data.index = data.index.round('h')
 datam = data.resample('ME').mean()
 
+#respt = ho.pettitt_test(datam)
+#loc = pd.to_datetime(respt.cp)
+#resst0 = mk.seasonal_test(datam, period=PERIOD)
+#resst1 = mk.seasonal_test(datam[:loc], period=PERIOD)
+#resst2 = mk.seasonal_test(datam[loc:], period=PERIOD)
+#
+#print('Trend entire period:', resst1.trend, 'p-value:', resst0.p, 'Average:', inputdata.loc[:, VAR].mean(), 'Slope per year:', resst0.slope)
+#print('Trend until:', loc, resst1.trend, 'p-value:', resst1.p, 'Average:', inputdata.loc[:loc, VAR].mean(), 'Solpe per year:', resst1.slope)
+#print('Trend from:', loc, resst2.trend, 'p-value:', resst2.p, 'Average:', inputdata.loc[loc:, VAR].mean(), 'Slope per year:', resst2.slope)
 #res = STL(datam).fit()
 #lres = OLS(datam.values, list(range(datam.shape[0]))).fit()
 #rres = datam.rolling(window=12).mean()
@@ -58,6 +68,8 @@ conv = 1/365/24
 #lfitt = pd.Series(range(datam.shape[0])*slope, index=datam.index)
 lfitt = pd.Series(range(data.shape[0])*res.slope*conv, index=data.index)
 dtrendt = data - lfitt
+
+#restfit = mk.seasonal_test(dtrendt.resample('ME').mean(), period=PERIOD)
 
 fig, ax = plt.subplots()
 ax.plot(data.resample('ME').mean())
@@ -78,4 +90,4 @@ plt.show()
 
 newdata = inputdata
 newdata[NAMEVAR] = dtrendt
-wr.write_forcing(cfg, newdata, PATHOUT, 'Forcing_NOTEMP.csv')
+wr.write_forcing(cfg, newdata, PATHOUT, 'Forcing_NB-NCC.csv')

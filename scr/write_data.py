@@ -75,7 +75,7 @@ def write_modeldata(cfg, modeldata):
                         mergedata = append1d_data(olddata, newdata)
                         mergedata.to_csv(filename, index=False, float_format='%.3f')
                     else:
-                        logging.warning('No file for model %s at % freq.', model, tavg)
+                        logging.warning('No file for model %s at %s freq.', model, tavg)
                         logging.warning('Creating new file')
                         modeldata[model]['1D'][tavg].reset_index(inplace=True)
                         modeldata[model]['1D'][tavg].to_csv(filename, index=False, float_format='%.3f')
