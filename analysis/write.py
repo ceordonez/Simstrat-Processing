@@ -22,6 +22,9 @@ def write_forcing(cfg, data, pathout, filename):
     columns.insert(0, 'Time [d]')
     data = data[columns]
     del data['Datetime']
+    columns = ['Time [d]', 'U [m/s]', 'V [m/s]', 'Temperature [degC]', 'Solar radiation [W/m^2]', 'Vapour pressure [mbar]', 'Cloud cover [-]', 'Precipitation [mm/h]']
+    data = data[columns]
+    __import__('pdb').set_trace()
     data.to_csv(os.path.join(pathout, filename), index=False, sep=' ', float_format='%.4f')
 
 def write_absorption(cfg, data, path, filename):

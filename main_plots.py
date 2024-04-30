@@ -1,17 +1,12 @@
-from datetime import datetime
-import os
-
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import logging
 
 from scr.logging_conf import logging_conf
-from scr.read_data import read_config, read_model, read_inputs_meteo, read_obs
 from scr.plot_data import plot_data
 from scr.processing_data import process_data
-from scr.write_data import write_data
+from scr.read_data import read_config, read_inputs_meteo, read_model, read_obs
 from scr.stats_data import stats_data
+from scr.write_data import write_data
+
 
 def main():
 

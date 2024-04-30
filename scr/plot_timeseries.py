@@ -53,10 +53,11 @@ def plot_timeseries(cfg, obsdata, modeldata, path_figures, save=True):
 
 def plot_ts_allmodel(modeldata, tavg, var, ylabel, ax):
     for modelname in modeldata:
-        modelplotdata = modeldata[modelname]['1D'][tavg][var].dropna()
         if tavg in ['MONTHLY', 'YEARLY']:
+            modelplotdata = modeldata[modelname]['1D'][tavg][var].dropna(subset=['mean'])
             modelplotdata['mean'].plot(label=modelname, ax=ax)
         else:
+            modelplotdata = modeldata[modelname]['1D'][tavg][var].dropna()
             modelplotdata.plot(label=modelname, ax=ax)
     ax.set_ylabel(ylabel)
 
@@ -64,7 +65,7 @@ def plot_per_model(cfg, modeldata, obsdata, tavg, var, ylabel, plotvar, path_fig
 
     for modelname in modeldata:
         logging.info('Plotting model name: %s, %s, %s', modelname, tavg, var)
-        dataplot = modeldata[modelname]['1D'][tavg][var].dropna()
+        dataplot = modeldata[modelname]['1D'][tavg][var].copy()
         fig, ax = plt.subplots(figsize=(6,3), layout='constrained')
         make_ts(cfg, ax, dataplot, modelname, ylabel[var][1], tavg, 'PMODEL')
         namefig = '_'.join(['TS', cfg['lake'], modelname, tavg, var])
@@ -91,6 +92,7 @@ def make_ts(cfg, ax, data, label, ylabel, tavg, td='MODEL'):
         mk = None
 
     if (td in ['OBS', 'PMODEL']) and (tavg in ['YEARLY', 'MONTHLY']):
+        data = data.dropna(subset=['mean'])
         data['mean'].plot(ax=ax, label=label, marker=mk, linestyle=ln)
         #ax.fill_between(data.index, data['mean'] - data['std'], data['mean'] + data['std'], alpha=0.2)
     else:

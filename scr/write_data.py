@@ -42,6 +42,8 @@ def write_obsdata(cfg, obsdata):
             if not os.path.exists(cfg['path_outfiles']):
                 os.makedirs(cfg['path_outfiles'])
             filename = os.path.join(cfg['path_outfiles'], filename +'.csv')
+            if tavg != 'ORG':
+                obsdata['1D'][tavg].columns = obsdata['1D'][tavg].columns.map('|'.join).str.strip('|')
             if cfg['write']['append-o']:
                 if os.path.exists(filename):
                     olddata = pd.read_csv(filename, index_col=[0], parse_dates=[0])
@@ -64,6 +66,8 @@ def write_modeldata(cfg, modeldata):
         if '1D' in modeldata[model]:
             logging.info('Writing model 1D data for model: %s', model)
             for tavg in modeldata[model]['1D']:
+                if tavg != 'ORG':
+                    modeldata[model]['1D'][tavg].columns = modeldata[model]['1D'][tavg].columns.map(' | '.join).str.strip(' | ')
                 filename = '_'.join([cfg['lake'], model, tavg])
                 if not os.path.exists(cfg['path_outfiles']):
                     os.makedirs(cfg['path_outfiles'])

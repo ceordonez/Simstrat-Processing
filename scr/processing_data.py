@@ -87,11 +87,10 @@ def process_model(cfg, modeldata):
 def average1D(indata, outdata, time_avg):
     if time_avg == 'M':
         avgdata = indata.resample('ME').agg(['mean', 'std'])
-        avgdata.columns = avgdata.columns.map('|'.join).str.strip('|')
+        #avgdata.columns = avgdata.columns.map('|'.join).str.strip('|')
         outdata.update({'MONTHLY': avgdata})
     if time_avg == 'Y':
         avgdata = indata.resample('YE').agg(['mean', 'std'])
-        avgdata.columns = avgdata.columns.map('|'.join).str.strip('|')
         outdata.update({'YEARLY': avgdata})
     if time_avg == 'YS':
         mindata= indata.resample('ME').mean().interpolate()

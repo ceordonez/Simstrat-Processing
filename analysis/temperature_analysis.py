@@ -88,6 +88,7 @@ dtrest = STL(dtrendt.resample('ME').mean()).fit()
 dtrest.plot()
 plt.show()
 
-newdata = inputdata
+newdata = inputdata.copy()
+newdata.index = dtrendt.index
 newdata[NAMEVAR] = dtrendt
-wr.write_forcing(cfg, newdata, PATHOUT, 'Forcing_NB-NCC.csv')
+wr.write_forcing(cfg, newdata, PATHOUT, 'Forcing_NSB-NCC.dat')
