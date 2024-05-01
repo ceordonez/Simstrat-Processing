@@ -28,7 +28,7 @@ PATHOUT ='/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/IN
 VAR = 'I_ATEMP'
 NAMEVAR = 'Temperature [degC]'
 NORMPERIOD = 'all'
-SEASON = ''
+SEASON = 'WINTER'
 
 cfg = read_varconfig('../config_preprocessing.yml')
 
