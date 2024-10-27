@@ -1,4 +1,5 @@
 import codecs
+import pdb
 import json
 import logging
 import os
@@ -27,7 +28,7 @@ def read_obs(cfg):
     list_temp2d = ['O_TEMPP', 'O_N2', 'O_TEMPI']
     # Adding 2D variables (not finished)
     if any(map(lambda x: x in cfg['var'], list_temp2d)):
-        data_tp = read_watertemp(cfg)
+        data_tp = read_proswatertemp(cfg)
         if 'O_TEMPP' in cfg['var']:
             logging.info('Reading O_TEMPP')
             data = add2ddata(data, data_tp.copy())
@@ -49,8 +50,7 @@ def read_obs(cfg):
 
     # Adding 1D variables
     if any(map(lambda x: x in cfg['var'], list_temp1d)):
-        data_t = read_watertemp(cfg)
-
+        data_t = read_proswatertemp(cfg)
         if 'O_TEMP0' in cfg['var']:
             logging.info('Reading O_TEMP0')
             data_t0 = data_t.loc[data_t.Depth_m == 1].copy()
@@ -119,6 +119,17 @@ def add1ddata(data, datavar):
         data['1D'] = pd.merge(data['1D'], datavar, how='outer', left_index=True, right_index=True)
     return data
 
+def read_proswatertemp(cfg):
+    path = cfg['path_obs']
+    data = pd.read_csv(os.path.join(path, cfg['file_wtempprof']), usecols=[0,1,2])
+    dtime = pd.to_datetime(data['Datetime'].values, format='%Y-%m-%d %H:%M:%S')
+    timedelta_components = pd.to_timedelta(['{} hours {} minutes {} seconds'.format(t.hour, t.minute, t.second) for t in dtime.time])
+    data['Datetime'] = dtime - timedelta_components
+    data.sort_values(by=['Datetime', 'Depth_m'], inplace=True)
+    data.set_index('Datetime', inplace=True)
+    data = data.loc[cfg['time_span'][0]:cfg['time_span'][1]]
+    return data
+
 def read_watertemp(cfg):
     path = cfg['path_obs']
     data = pd.read_csv(os.path.join(path, cfg['file_wtempprof']), usecols=[2,4,5])
@@ -166,7 +177,7 @@ def read_model(cfg):
                     if varf == 'Forcing.dat':
                         varf = cfg_sims['Input']['Forcing']
                         filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
-                        alldatafile = pd.read_csv(filename, sep='\s+')
+                        alldatafile = pd.read_csv(filename, sep=r'\s+')
                         alldatafile.rename(columns={'Time [d]':'Datetime'}, inplace=True)
                         if var == 'I_RAD':
                             datafile = alldatafile.loc[:,['Datetime', 'Solar radiation [W/m^2]']]
@@ -178,7 +189,7 @@ def read_model(cfg):
                         varf = cfg_sims['Input']['Absorption']
                         logging.info('Reading file: %s', varf)
                         filename = os.path.join(path, lakename, modelname, 'INPUTS', varf)
-                        datafile = pd.read_csv(filename, skiprows=3, sep='\s+', names=['Datetime',var])
+                        datafile = pd.read_csv(filename, skiprows=3, sep=r'\s+', names=['Datetime',var])
                         if all(datafile['I_SD'].isna()):
                             datafile = pd.read_csv(filename, skiprows=3, sep=',', names=['Datetime',var])
                         #time = datafile.Datetime
@@ -316,7 +327,7 @@ def read_forcing(cfg, filename):
     cfg_sims = read_varconfig(filecfg_sims)
     refyear = str(cfg_sims['Simulation']['Reference year'])
     filename = os.path.join(cfg['paths']['input'], cfg['lake'], filename)
-    data= pd.read_csv(filename, sep='\s+')
+    data= pd.read_csv(filename, sep=r'\s+')
     data.rename(columns={'Time [d]':'Datetime'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data.Datetime, origin=refyear, unit='D')
     data= data.set_index('Datetime')
@@ -331,13 +342,13 @@ def read_absorption(cfg, filename):
     cfg_sims = read_varconfig(filecfg_sims)
     refyear = str(cfg_sims['Simulation']['Reference year'])
     filename = os.path.join(cfg['paths']['input'], cfg['lake'], filename)
-    data= pd.read_csv(filename, sep='\s+', skiprows=3, names=['Datetime', 'I_KL'])
+    data= pd.read_csv(filename, sep=r'\s+', skiprows=3, names=['Datetime', 'I_KL'])
     data['Datetime'] = pd.to_datetime(data.Datetime, origin=refyear, unit='D')
     data= data.set_index('Datetime')
     return data
 
 def read_bathymetry(cfg):
     path = cfg['path_obs']
-    data = pd.read_csv(os.path.join(path, cfg['file_bathymetry']), sep='\s+', skiprows=1, names=['Depth_m', 'Area_m2'])
+    data = pd.read_csv(os.path.join(path, cfg['file_bathymetry']), sep=r'\s+', skiprows=1, names=['Depth_m', 'Area_m2'])
     data['Depth_m'] = -1*data['Depth_m']
     return data

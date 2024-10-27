@@ -1,5 +1,5 @@
 import logging
-
+import pdb
 import calendar
 import collections
 #from scipy import signal
@@ -169,7 +169,9 @@ def schmidtStability(data, bathy, vartemp, var):
         data_aux = data_aux.interpolate('linear')
         z = data_aux.Depth_m
         areas = data_aux.Area_m2
-        T = data_aux[vartemp].values
+        T = data_aux[vartemp]
+        T = T.bfill(limit=1)
+        T = T.values
         if 'O_SAL' not in data_tp.columns:
             S=[0]*len(data_aux)
 
@@ -178,7 +180,8 @@ def schmidtStability(data, bathy, vartemp, var):
         volume = sum(midValue(areas)*np.abs(np.diff(z))) #Lake volume from bathymetry [m3]
         zv = 1/volume*sum(midValue(z*areas)*np.abs(np.diff(z))) #Centre of volume [m]
         St = 9.81/max(areas)*sum(midValue((z-zv)*rho*areas)*np.abs(np.diff(z))) #Schmidt stability [J/m^2] (e.g. Kirillin and Shatwell 2016)
-        if St!=0: St=np.round(St,3-int(np.log10(np.abs(St)))) #Round to 4 significant figures
+        if St!=0: St=np.round(St, decimals=4) #Round to 4 significant figures
+        if np.isnan(St): pdb.set_trace()
         dates.append(date)
         data_st.append(St)
     alldata = pd.DataFrame({'Datetime': dates, var:data_st})
@@ -197,14 +200,17 @@ def heatContent(data, bathy, vartemp, var):
         data_aux = data_aux.interpolate('linear')
         z = data_aux.Depth_m
         areas = data_aux.Area_m2
-        T = data_aux[vartemp].values
+        T = data_aux[vartemp]
+        T = T.bfill(limit=1)
+        T = T.values
         if 'O_SAL' not in data_tp.columns:
             S=[0]*len(data_aux)
 
         z,areas,T,S = (np.array(z),np.array(areas),np.array(T),np.array(S))
         rho = waterDensity(T,S)
         hc = sum(4183*midValue(areas*rho*T)*np.abs(np.diff(z))) #Heat content [J] (e.g. Weinberger and Vetter 2014)
-        if hc!=0: hc=np.round(hc,3-int(np.log10(np.abs(hc)))) #Round to 4 significant figures
+        if hc!=0: hc=np.round(hc, decimals=4) #Round to 4 significant figures
+        if np.isnan(hc): pdb.set_trace()
         dates.append(date)
         data_st.append(hc)
     alldata = pd.DataFrame({'Datetime': dates, var:data_st})
