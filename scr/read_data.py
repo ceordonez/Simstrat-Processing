@@ -331,6 +331,7 @@ def read_forcing(cfg, filename):
     data.rename(columns={'Time [d]':'Datetime'}, inplace=True)
     data['Datetime'] = pd.to_datetime(data.Datetime, origin=refyear, unit='D')
     data= data.set_index('Datetime')
+    data = data.resample('H').mean()
 
     return data
 

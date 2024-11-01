@@ -22,7 +22,16 @@ def doy365(time):
     return (doy-1)
 
 def N2(data):
-    """ Bouyancy frequency"""
+    """Calculate Bouyancy frequency
+
+    Parameters
+    ----------
+    data: DataFrame
+
+    Returns
+    -------
+    Append N2 calculation to the data DataFrame
+    """
     #rho, Temp, Z = filterProf(data, 0.25) # Mean every n meters
     alldata= []
     for date in data.index.unique():
@@ -37,6 +46,19 @@ def N2(data):
     return alldata
 
 def interp_temp(data_p, date):
+    """Make profile interpolation.
+    Profile is interpolate every 1m using the slinear method.
+
+    Parameters
+    ----------
+    data_p: DataFrame
+            Data profile at specific date
+    date: String
+
+    Returns
+    -------
+    DataFrame of the profile interpolated every 1m
+    """
 
     newz = pd.Series(np.arange(0, data_p.Depth_m.max()+1, 1), name='Depth_m')
     newdata_p = pd.merge(data_p, newz, on='Depth_m', how='outer')
@@ -158,8 +180,23 @@ def cloudcover(data, lake):
     return data
 
 def schmidtStability(data, bathy, vartemp, var):
+    """Calculate Schmidt Stability based on Kirillin and Shatwell, 2016.
+
+    Parameters
+    ----------
+    data: DataFrame
+    bathy: Lake bathymetry
+    vartemp: TODO
+    var: TODO
+
+    Returns
+    -------
+    TODO
+    """
+
     dates = []
     data_st = []
+
     for date in data.index.unique():
         data_tp = data.loc[date]
         data_tp.reset_index(inplace=True)
@@ -167,23 +204,27 @@ def schmidtStability(data, bathy, vartemp, var):
         data_aux = pd.merge(bathy, data_tp, how='outer', on='Depth_m')
         data_aux = data_aux.interpolate('slinear')
         data_aux = data_aux.interpolate('linear')
-        z = data_aux.Depth_m
-        areas = data_aux.Area_m2
-        T = data_aux[vartemp]
-        T = T.bfill(limit=1)
-        T = T.values
+        depth = np.abs(data_aux.Depth_m.values)
+        areas = data_aux.Area_m2.values
+        temp = data_aux[vartemp].bfill(limit=1)
+        temp = temp.values
         if 'O_SAL' not in data_tp.columns:
-            S=[0]*len(data_aux)
+            sal = np.array([0]*len(data_aux))
+        else:
+            sal = data_tp['O_SAL'].values
 
-        z,areas,T,S = (np.abs(z),np.array(areas),np.array(T),np.array(S))
-        rho = waterDensity(T,S)
-        volume = sum(midValue(areas)*np.abs(np.diff(z))) #Lake volume from bathymetry [m3]
-        zv = 1/volume*sum(midValue(z*areas)*np.abs(np.diff(z))) #Centre of volume [m]
-        St = 9.81/max(areas)*sum(midValue((z-zv)*rho*areas)*np.abs(np.diff(z))) #Schmidt stability [J/m^2] (e.g. Kirillin and Shatwell 2016)
-        if St!=0: St=np.round(St, decimals=4) #Round to 4 significant figures
-        if np.isnan(St): pdb.set_trace()
+        rho = waterDensity(temp, sal)
+        volume = sum(midValue(areas)*np.abs(np.diff(depth))) #Lake volume from bathymetry [m3]
+        depthv = 1/volume*sum(midValue(depth*areas)*np.abs(np.diff(depth))) #Centre of volume [m]
+        sst = 9.81/max(areas)*sum(midValue((depth - depthv)*rho*areas)*np.abs(np.diff(depth))) #Schmidt stability [J/m^2] (e.g. Kirillin and Shatwell 2016)
+        if sst != 0:
+            sst = np.round(sst, decimals=4) #Round to 4 significant figures
+        if np.isnan(sst):
+            print('Check Schmidt Stability calclulations')
+            pdb.set_trace()
         dates.append(date)
-        data_st.append(St)
+        data_st.append(sst)
+
     alldata = pd.DataFrame({'Datetime': dates, var:data_st})
     alldata.set_index('Datetime', inplace=True)
     return alldata

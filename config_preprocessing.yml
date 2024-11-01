@@ -3,7 +3,8 @@
 #lake: 'Lake Hallwil'
 lake: 'HALLWIL'
 date_interval: ['2000-01-01', '2019-01-01 00:00']
-modelname: 'EAWAG_INPUTS_BASE'
+modelname: 'BASE'
+latitude: 47.3
 
 # PATHS
 #

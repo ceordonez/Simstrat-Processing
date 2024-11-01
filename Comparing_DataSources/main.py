@@ -4,15 +4,15 @@ import netCDF4 as nc
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo
 import pdb
 
-PATH = '/home/cesar-ordonez/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/ctdmonitoringlakehallwilbycantonaargau_datalakesdownload'
+PATH = '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/ctdmonitoringlakehallwilbycantonaargau_datalakesdownload'
 
-PATH_BUOY = '/home/cesar-ordonez/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/temperaturemonitoringlakehallwil_datalakesdownload'
+PATH_BUOY = '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/temperaturemonitoringlakehallwil_datalakesdownload'
 
 FILENAME = 'L2_LakeHallwil_20150107_110000.nc'
-PATH_OBS = '/home/cesar-ordonez/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/Raw'
+PATH_OBS = '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/Raw'
 FILEOBS = 'Temperature_bafu85_98probes20.csv'
 
 def main():
@@ -25,25 +25,28 @@ def main():
     idx = obsdata.index[-1]
     data = [obsdata, ca_data[idx:]]
     data = pd.concat(data)
-    data.to_csv('Temperature_profiles.csv')
+    data['weight'] = 1
     pdb.set_trace()
+    data.to_csv('Calibtemp.csv')
 
 
 def read_ncdata(ncfile, instrument):
     ncdata = nc.Dataset(ncfile, 'r')
     start_date = datetime(1970, 1, 1)
-    nctime = pd.to_datetime(ncdata['time'][:].data, unit='s', origin=start_date)
-    pdb.set_trace()
+    nctime = pd.to_datetime(ncdata['time'][:].data, unit='s', origin=start_date, utc=True)
     # This is for comparison!
     #nctime = nctime - pd.to_timedelta(nctime.hour.values, unit='h')
-    pdb.set_trace()
+    #pdb.set_trace()
     ncdepth = ncdata['depth'][:].data
     nctemp = ncdata['temp'][:].data
-    data = pd.DataFrame({'Datetime': np.repeat(nctime, len(ncdepth)),
-                         'Depth_m': np.tile(ncdepth, len(nctime)),
-                         'O_TEMPP': nctemp.flatten('F')})
-    data['Instrument'] = instrument
-    data.set_index('Datetime', inplace=True)
+    data = pd.DataFrame({'time': np.repeat(nctime, len(ncdepth)),
+                         'depth': np.tile(ncdepth, len(nctime)),
+                         'value': nctemp.flatten('F')})
+    #data['Instrument'] = instrument
+    data['latitude'] = 47.276
+    data['longitude'] = 8.216
+    data.set_index('time', inplace=True)
+    data.dropna(inplace=True)
     return data
 
 def read_buoy(path):
@@ -58,10 +61,13 @@ def read_buoy(path):
 def read_watertemp(path, filename):
     data = pd.read_csv(os.path.join(path, filename), usecols=[2,4,5,6])
     if 'date_complete' in data.columns:
-        data.rename(columns={'date_complete': 'Datetime', 'depth': 'Depth_m', 'temperature': 'O_TEMPP', 'Source': 'Instrument'}, inplace=True)
-    data['Datetime'] = pd.to_datetime(data['Datetime'], format='%d/%m/%Y')
-    data.sort_values(by=['Datetime', 'Depth_m'], inplace=True)
-    data.set_index('Datetime', inplace=True)
+        data.rename(columns={'date_complete': 'time', 'depth': 'depth', 'temperature': 'value', 'Source': 'Instrument'}, inplace=True)
+    data['time'] = pd.to_datetime(data['time'], format='%d/%m/%Y', utc=True) + pd.to_timedelta(11, unit='h')
+    data.sort_values(by=['time', 'depth'], inplace=True)
+    data.set_index('time', inplace=True)
+    del data['Instrument']
+    data['latitude'] = 47.276
+    data['longitude'] = 8.216
     return data
 
 def plot_comparison(data, obsdata):

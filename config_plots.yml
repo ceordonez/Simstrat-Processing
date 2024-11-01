@@ -1,12 +1,12 @@
 
 lake: 'HALLWIL'
-path_obs: '/home/cesar-ordonez/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/Processed'
-path_models: '/home/cesar-ordonez/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
-path_figures: '/home/cesar-ordonez/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/FIGURES'
-path_outfiles: '/home/cesar-ordonez/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/OUTFILES/NEW'
+path_obs: '~/Dropbox/Cesar/PostDoc/Projects/WaterClarity/HalwillData/Processed'
+path_models: '/home/cesar/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/MODEL_RESULTS'
+path_figures: '~/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/FIGURES'
+path_outfiles: '~/Dropbox/Cesar/PostDoc/Projects/WaterClarity/Simulations/OUTFILES/NEW'
   #model_names: ['EAWAG_INPUTS_BASE', 'EIB_LIGHT_KCPD_P2','EAWAG_INPUTS_BASE_NOBRIGHT']
   #model_names: ['EAWAG_INPUTS_BASE', 'EIB_LIGHT_KCPD_P0_NOBRIGHT', 'EIB_LIGHT_KCPD_P1_NOBRIGHT', 'EIB_LIGHT_KCPD_P2_NOBRIGHT',   'EIB_LIGHT_KCPD_P0',  'EIB_LIGHT_KCPD_P1', 'EIB_LIGHT_KCPD_P2','EAWAG_INPUTS_BASE_NOBRIGHT']
-model_names: [] #['BASE', 'P0', 'P1', 'P2']
+model_names: ['BASE'] #['BASE', 'P0', 'P1', 'P2']
 time_span: ['01-01-1985', '31-12-2023']
 
 file_wtempprof: 'Temperature_profiles.csv'
@@ -20,14 +20,14 @@ makeplots: False
 plot:
   colormesh: []
     #timeseries: ['O_SD', 'O_ST', 'O_MN2', 'O_HC', 'O_TEMP0', 'O_TEMPB']
-  timeseries: [['I_SD', 'O_SD'], 'HA', 'HW', 'HK', 'HV', ['ST', 'O_ST'], ['TEMPB', 'O_TEMPB'], ['HC', 'O_HC'],['TEMP0', 'O_TEMP0'], ['MN2', 'O_MN2'], 'O_SD']
+  timeseries: [['I_SD', 'O_SD'], 'HA', 'HW', 'HK', 'HV', 'RAD0', ['ST', 'O_ST'], ['TEMPB', 'O_TEMPB'], ['HC', 'O_HC'],['TEMP0', 'O_TEMP0'], ['MN2', 'O_MN2'], 'O_SD']
     #timeseries: [['O_SD', 'I_SD']]
   profiles: [] #['O_TEMPI','O_TEMPP'], ['O_TEMPI', 'O_N2'], ['TEMP', 'O_TEMPP']]
   figformat: 'png'
-  save: True
+  save: False
 
 write:
-  model: False
+  model: True
   obs: True
   stats: False
   append-m: False
